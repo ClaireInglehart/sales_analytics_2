@@ -1,15 +1,15 @@
-customer_id,business_category
-CUST001,Retail
-CUST002,Technology
-CUST003,Retail
-CUST004,Marketing Services
-CUST005,Professional Services
-CUST006,Retail
-CUST007,Technology
-CUST008,Retail
-CUST009,Marketing Services
-CUST010,Professional Services
-CUST011,Technology
-CUST012,Retail
-CUST013,Marketing Services
+customer_id,business_category,business_sub_category
+CUST001,Retail,Hardware Store
+CUST002,Technology,Software/SaaS
+CUST003,Retail,Gift Shop
+CUST004,Professional Services,Marketing
+CUST005,Professional Services,Consulting
+CUST006,Retail,E-commerce
+CUST007,Technology,IT Services
+CUST008,Retail,Boutique
+CUST009,Professional Services,Marketing
+CUST010,Professional Services,Accounting
+CUST011,Technology,Software/SaaS
+CUST012,Retail,Bookstore
+CUST013,Professional Services,Consulting
 

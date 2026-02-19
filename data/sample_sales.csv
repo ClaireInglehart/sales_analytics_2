@@ -1,32 +1,262 @@
-customer_id,product_id,product_category,transaction_date,sales_amount
-CUST001,PROD001,Electronics,2024-01-15,1250.50
-CUST002,PROD002,Software,2024-01-16,3500.00
-CUST003,PROD003,Office Supplies,2024-01-17,450.75
-CUST001,PROD004,Electronics,2024-01-18,890.25
-CUST004,PROD005,Marketing Services,2024-01-19,2200.00
-CUST002,PROD006,Software,2024-01-20,1800.00
-CUST005,PROD007,Consulting,2024-01-21,5000.00
-CUST003,PROD008,Office Supplies,2024-01-22,320.50
-CUST006,PROD001,Electronics,2024-01-23,1250.50
-CUST001,PROD009,Marketing Services,2024-01-24,1500.00
-CUST007,PROD002,Software,2024-01-25,3500.00
-CUST004,PROD010,Consulting,2024-01-26,4200.00
-CUST005,PROD011,Training,2024-01-27,2800.00
-CUST008,PROD003,Office Supplies,2024-01-28,450.75
-CUST002,PROD012,Electronics,2024-01-29,2100.00
-CUST009,PROD005,Marketing Services,2024-01-30,2200.00
-CUST010,PROD007,Consulting,2024-02-01,5000.00
-CUST001,PROD013,Training,2024-02-02,3200.00
-CUST003,PROD014,Office Supplies,2024-02-03,275.00
-CUST006,PROD015,Electronics,2024-02-04,1890.50
-CUST011,PROD002,Software,2024-02-05,3500.00
-CUST004,PROD016,Marketing Services,2024-02-06,1800.00
-CUST007,PROD017,Consulting,2024-02-07,4500.00
-CUST012,PROD001,Electronics,2024-02-08,1250.50
-CUST005,PROD018,Training,2024-02-09,2900.00
-CUST008,PROD019,Office Supplies,2024-02-10,520.25
-CUST002,PROD020,Software,2024-02-11,4200.00
-CUST013,PROD005,Marketing Services,2024-02-12,2200.00
-CUST009,PROD021,Consulting,2024-02-13,3800.00
-CUST010,PROD022,Training,2024-02-14,3100.00
-
+customer_id,product_id,product_category,product_name,transaction_date,sales_amount,city,state,location,business_category
+CUST001,PROD-0001,Party supplies,Themed Party Kit,2024-12-22,188.98,Boston,MA,"Boston, MA",Retail
+CUST001,PROD-0002,Women's accessories,Hair Scrunchie Pack,2024-07-08,46.66,Boston,MA,"Boston, MA",Retail
+CUST001,PROD-0003,Party supplies,Cups Set,2024-06-11,109.22,Boston,MA,"Boston, MA",Retail
+CUST001,PROD-0004,Women's accessories,Hair Bands,2024-10-12,213.03,Boston,MA,"Boston, MA",Retail
+CUST001,PROD-0005,Women's accessories,Necklace,2024-12-19,88.22,Boston,MA,"Boston, MA",Retail
+CUST001,PROD-0006,Party supplies,Balloon Set,2024-01-30,89.8,Boston,MA,"Boston, MA",Retail
+CUST002,PROD-0007,Men's accessories,Keychain,2024-02-09,284.21,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0008,Men's accessories,Hat,2024-09-11,249.81,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0009,Stationery & writing,Gel Pen Set,2024-03-16,125.49,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0010,Party supplies,Tableware Set,2024-03-01,36.25,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0011,Party supplies,Party Decorations,2024-11-24,98.62,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0012,Stationery & writing,Planner Set,2024-06-12,126.4,Charlotte,NC,"Charlotte, NC",Technology
+CUST002,PROD-0013,Party supplies,Party Decorations,2024-02-21,129.3,Charlotte,NC,"Charlotte, NC",Technology
+CUST003,PROD-0014,Men's accessories,Tie Set,2024-10-11,231.5,Louisville,KY,"Louisville, KY",Retail
+CUST003,PROD-0015,Stickers pins & magnets,Laptop Sticker Set,2024-08-30,75.82,Louisville,KY,"Louisville, KY",Retail
+CUST003,PROD-0016,Party supplies,Confetti Pack,2024-05-03,76.88,Louisville,KY,"Louisville, KY",Retail
+CUST003,PROD-0017,Women's accessories,Hair Accessories,2024-11-19,289.93,Louisville,KY,"Louisville, KY",Retail
+CUST003,PROD-0018,Stickers pins & magnets,Humor Stickers,2024-11-13,79.25,Louisville,KY,"Louisville, KY",Retail
+CUST003,PROD-0019,Men's accessories,Tie Set,2024-10-05,198.12,Louisville,KY,"Louisville, KY",Retail
+CUST004,PROD-0020,Stationery & writing,Stationery Set,2024-07-03,32.13,Cleveland,OH,"Cleveland, OH",Marketing Services
+CUST004,PROD-0021,Men's accessories,Keychain,2024-03-25,88.52,Cleveland,OH,"Cleveland, OH",Marketing Services
+CUST004,PROD-0022,Stationery & writing,Planner Set,2024-12-05,100.85,Cleveland,OH,"Cleveland, OH",Marketing Services
+CUST004,PROD-0023,Party supplies,Party Plates,2024-12-06,87.03,Cleveland,OH,"Cleveland, OH",Marketing Services
+CUST005,PROD-0024,Stationery & writing,Fountain Pen,2024-09-24,134.78,Charlotte,NC,"Charlotte, NC",Professional Services
+CUST005,PROD-0025,Party supplies,Party Plates,2024-06-14,111.85,Charlotte,NC,"Charlotte, NC",Professional Services
+CUST005,PROD-0026,Men's accessories,Leather Wallet,2024-06-07,102.73,Charlotte,NC,"Charlotte, NC",Professional Services
+CUST005,PROD-0027,Stationery & writing,Calligraphy Set,2024-05-20,141.17,Charlotte,NC,"Charlotte, NC",Professional Services
+CUST006,PROD-0028,Stickers pins & magnets,Inspirational Quote Stickers,2024-10-23,53.48,Dallas,TX,"Dallas, TX",Retail
+CUST006,PROD-0029,Party supplies,Party Hats,2024-04-20,91.6,Dallas,TX,"Dallas, TX",Retail
+CUST006,PROD-0030,Men's accessories,Tie Set,2024-06-13,248.52,Dallas,TX,"Dallas, TX",Retail
+CUST006,PROD-0031,Stickers pins & magnets,Motivational Pin Set,2024-03-29,82.09,Dallas,TX,"Dallas, TX",Retail
+CUST006,PROD-0032,Men's accessories,Backpack,2024-04-18,201.03,Dallas,TX,"Dallas, TX",Retail
+CUST007,PROD-0033,Party supplies,Themed Party Kit,2024-10-22,165.85,Miami,FL,"Miami, FL",Technology
+CUST007,PROD-0034,Women's accessories,Clutch Bag,2024-04-28,130.68,Miami,FL,"Miami, FL",Technology
+CUST007,PROD-0035,Women's accessories,Jewelry Set,2024-12-03,204.98,Miami,FL,"Miami, FL",Technology
+CUST007,PROD-0036,Women's accessories,Earrings,2024-07-15,40.66,Miami,FL,"Miami, FL",Technology
+CUST007,PROD-0037,Women's accessories,Fashion Scarf,2024-12-14,232.02,Miami,FL,"Miami, FL",Technology
+CUST008,PROD-0038,Stationery & writing,Gel Pen Set,2024-09-04,91.9,Portland,ME,"Portland, ME",Retail
+CUST008,PROD-0039,Party supplies,Confetti Pack,2024-01-31,146.34,Portland,ME,"Portland, ME",Retail
+CUST008,PROD-0040,Stationery & writing,Pencil Set,2024-02-16,84.34,Portland,ME,"Portland, ME",Retail
+CUST008,PROD-0041,Men's accessories,Wallet,2024-02-22,273.96,Portland,ME,"Portland, ME",Retail
+CUST008,PROD-0042,Men's accessories,Belt,2024-06-29,104.86,Portland,ME,"Portland, ME",Retail
+CUST008,PROD-0043,Party supplies,Party Plates,2024-09-16,36.25,Portland,ME,"Portland, ME",Retail
+CUST009,PROD-0044,Party supplies,Party Napkins,2024-01-14,84.47,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0045,Party supplies,Photo Booth Props,2024-04-27,55.63,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0046,Women's accessories,Bracelet Set,2024-10-27,131.93,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0047,Stickers pins & magnets,Enamel Pin Set,2024-06-02,28.82,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0048,Stickers pins & magnets,Animal Pins,2024-08-08,74.13,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0049,Men's accessories,Pocket Square,2024-07-10,61.45,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST009,PROD-0050,Stationery & writing,Notebook Collection,2024-02-11,125.36,San Francisco,CA,"San Francisco, CA",Marketing Services
+CUST010,PROD-0051,Women's accessories,Fashion Scarf,2024-08-22,89.86,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0052,Party supplies,Streamers,2024-06-14,92.2,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0053,Women's accessories,Scarf Collection,2024-12-14,103.54,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0054,Men's accessories,Phone Case,2024-06-21,224.14,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0055,Party supplies,Tableware Set,2024-09-29,129.44,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0056,Party supplies,Party Napkins,2024-12-31,152.95,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST010,PROD-0057,Men's accessories,Sunglasses,2024-06-02,113.84,Phoenix,AZ,"Phoenix, AZ",Professional Services
+CUST011,PROD-0058,Men's accessories,Watch,2024-12-23,276.45,San Francisco,CA,"San Francisco, CA",Technology
+CUST011,PROD-0059,Women's accessories,Fashion Scarf,2024-06-08,92.34,San Francisco,CA,"San Francisco, CA",Technology
+CUST011,PROD-0060,Men's accessories,Watch,2024-05-19,78.8,San Francisco,CA,"San Francisco, CA",Technology
+CUST012,PROD-0061,Stationery & writing,Ballpoint Pen Pack,2024-11-28,75.63,Sacramento,CA,"Sacramento, CA",Retail
+CUST012,PROD-0062,Stickers pins & magnets,Laptop Sticker Set,2024-08-17,69.32,Sacramento,CA,"Sacramento, CA",Retail
+CUST012,PROD-0063,Party supplies,Party Plates,2024-07-25,161.49,Sacramento,CA,"Sacramento, CA",Retail
+CUST012,PROD-0064,Men's accessories,Phone Case,2024-12-31,137.75,Sacramento,CA,"Sacramento, CA",Retail
+CUST012,PROD-0065,Stickers pins & magnets,Laptop Sticker Set,2024-07-03,19.85,Sacramento,CA,"Sacramento, CA",Retail
+CUST012,PROD-0066,Men's accessories,Backpack,2024-06-27,245.47,Sacramento,CA,"Sacramento, CA",Retail
+CUST013,PROD-0067,Women's accessories,Hair Bands,2024-04-10,43.64,Dallas,TX,"Dallas, TX",Marketing Services
+CUST013,PROD-0068,Stickers pins & magnets,Emoji Sticker Pack,2024-03-08,79.8,Dallas,TX,"Dallas, TX",Marketing Services
+CUST013,PROD-0069,Party supplies,Photo Booth Props,2024-06-14,31.88,Dallas,TX,"Dallas, TX",Marketing Services
+CUST013,PROD-0070,Women's accessories,Clutch Bag,2024-08-07,165.86,Dallas,TX,"Dallas, TX",Marketing Services
+CUST013,PROD-0071,Stickers pins & magnets,Political Sticker Collection,2024-08-18,44.34,Dallas,TX,"Dallas, TX",Marketing Services
+CUST014,PROD-0072,Party supplies,Streamers,2024-10-07,37.51,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST014,PROD-0073,Stickers pins & magnets,Custom Pin Badge,2024-04-14,72.0,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST014,PROD-0074,Stickers pins & magnets,Political Sticker Collection,2024-07-31,37.92,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST014,PROD-0075,Stationery & writing,Gel Pen Set,2024-02-10,28.61,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST014,PROD-0076,Stationery & writing,Writing Pad,2024-03-12,42.32,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST014,PROD-0077,Stickers pins & magnets,Humor Stickers,2024-02-16,23.42,Oklahoma City,OK,"Oklahoma City, OK",Children's Bookstore
+CUST015,PROD-0078,Stickers pins & magnets,Refrigerator Magnets,2024-12-05,34.05,Miami,FL,"Miami, FL",Independent Bookstore
+CUST015,PROD-0079,Stationery & writing,Pencil Set,2024-06-21,46.27,Miami,FL,"Miami, FL",Independent Bookstore
+CUST015,PROD-0080,Stickers pins & magnets,Funny Quote Sticker Pack,2024-09-20,54.69,Miami,FL,"Miami, FL",Independent Bookstore
+CUST015,PROD-0081,Stationery & writing,Calligraphy Set,2024-09-22,84.34,Miami,FL,"Miami, FL",Independent Bookstore
+CUST015,PROD-0082,Stationery & writing,Desk Organizer,2024-05-27,61.78,Miami,FL,"Miami, FL",Independent Bookstore
+CUST016,PROD-0083,Stationery & writing,Planner Set,2024-04-26,26.15,Seattle,WA,"Seattle, WA",Bookstore & Cafe
+CUST016,PROD-0084,Stationery & writing,Ballpoint Pen Pack,2024-06-18,29.67,Seattle,WA,"Seattle, WA",Bookstore & Cafe
+CUST016,PROD-0085,Stickers pins & magnets,Custom Pin Badge,2024-11-26,76.35,Seattle,WA,"Seattle, WA",Bookstore & Cafe
+CUST016,PROD-0086,Stationery & writing,Planner Set,2024-12-26,147.82,Seattle,WA,"Seattle, WA",Bookstore & Cafe
+CUST016,PROD-0087,Party supplies,Party Napkins,2024-10-09,170.56,Seattle,WA,"Seattle, WA",Bookstore & Cafe
+CUST017,PROD-0088,Stationery & writing,Calligraphy Set,2024-07-27,123.67,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0089,Stationery & writing,Writing Pad,2024-08-20,41.8,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0090,Stationery & writing,Notecards,2024-10-05,25.76,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0091,Stationery & writing,Gel Pen Set,2024-03-09,94.01,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0092,Stationery & writing,Pencil Set,2024-11-01,98.35,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0093,Stickers pins & magnets,Motivational Pin Set,2024-07-27,24.27,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST017,PROD-0094,Stationery & writing,Notebook Collection,2024-03-15,148.57,Milwaukee,WI,"Milwaukee, WI",Stationery Store
+CUST018,PROD-0095,Stickers pins & magnets,Motivational Pin Set,2024-08-05,84.73,Kansas City,MO,"Kansas City, MO",Bookstore & Cafe
+CUST018,PROD-0096,Party supplies,Birthday Party Kit,2024-09-05,121.29,Kansas City,MO,"Kansas City, MO",Bookstore & Cafe
+CUST018,PROD-0097,Stationery & writing,Planner Set,2024-04-03,56.6,Kansas City,MO,"Kansas City, MO",Bookstore & Cafe
+CUST019,PROD-0098,Party supplies,Party Napkins,2024-10-13,89.9,Philadelphia,PA,"Philadelphia, PA",Party Store
+CUST019,PROD-0099,Party supplies,Party Plates,2024-05-27,119.66,Philadelphia,PA,"Philadelphia, PA",Party Store
+CUST019,PROD-0100,Stickers pins & magnets,Animal Pins,2024-01-12,40.95,Philadelphia,PA,"Philadelphia, PA",Party Store
+CUST019,PROD-0101,Party supplies,Streamers,2024-05-17,142.26,Philadelphia,PA,"Philadelphia, PA",Party Store
+CUST019,PROD-0102,Party supplies,Party Games,2024-04-29,87.1,Philadelphia,PA,"Philadelphia, PA",Party Store
+CUST020,PROD-0103,Women's accessories,Jewelry Set,2024-11-06,107.4,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST020,PROD-0104,Women's accessories,Hair Clips,2024-08-19,171.95,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST020,PROD-0105,Women's accessories,Hair Clips,2024-12-25,141.31,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST020,PROD-0106,Women's accessories,Tote Bag,2024-12-26,94.17,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST020,PROD-0107,Stickers pins & magnets,Political Sticker Collection,2024-09-11,76.44,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST020,PROD-0108,Party supplies,Themed Party Kit,2024-11-07,135.14,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST021,PROD-0109,Stickers pins & magnets,Enamel Pin Set,2024-06-01,84.95,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0110,Stickers pins & magnets,Vinyl Decal Stickers,2024-06-06,51.4,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0111,Stationery & writing,Notecards,2024-01-21,52.65,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0112,Stationery & writing,Writing Pad,2024-06-24,109.91,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0113,Stickers pins & magnets,Animal Pins,2024-10-18,65.66,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0114,Party supplies,Celebration Banner,2024-10-05,65.59,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST021,PROD-0115,Stickers pins & magnets,Laptop Sticker Set,2024-06-22,75.94,Raleigh,NC,"Raleigh, NC",Children's Bookstore
+CUST022,PROD-0116,Party supplies,Party Favors,2024-09-01,77.09,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0117,Party supplies,Themed Party Kit,2024-09-27,91.45,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0118,Party supplies,Party Decorations,2024-09-10,55.89,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0119,Party supplies,Party Hats,2024-09-19,76.53,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0120,Party supplies,Streamers,2024-07-03,61.55,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0121,Stickers pins & magnets,Laptop Sticker Set,2024-08-06,22.53,Columbus,OH,"Columbus, OH",Party Store
+CUST022,PROD-0122,Party supplies,Cups Set,2024-07-06,176.11,Columbus,OH,"Columbus, OH",Party Store
+CUST023,PROD-0123,Stationery & writing,Ballpoint Pen Pack,2024-05-11,129.16,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0124,Stationery & writing,Sticky Notes,2024-01-26,106.11,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0125,Party supplies,Tableware Set,2024-11-25,188.66,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0126,Party supplies,Tableware Set,2024-10-20,151.42,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0127,Stationery & writing,Planner Set,2024-12-27,126.47,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0128,Stationery & writing,Gel Pen Set,2024-04-20,42.74,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST023,PROD-0129,Stationery & writing,Notecards,2024-07-02,34.83,Jacksonville,FL,"Jacksonville, FL",Bookstore & Cafe
+CUST024,PROD-0130,Men's accessories,Backpack,2024-12-04,271.11,Memphis,TN,"Memphis, TN",Gift Shop
+CUST024,PROD-0131,Stickers pins & magnets,Animal Pins,2024-06-06,17.99,Memphis,TN,"Memphis, TN",Gift Shop
+CUST024,PROD-0132,Stickers pins & magnets,Inspirational Quote Stickers,2024-10-02,70.01,Memphis,TN,"Memphis, TN",Gift Shop
+CUST024,PROD-0133,Party supplies,Party Plates,2024-06-24,52.96,Memphis,TN,"Memphis, TN",Gift Shop
+CUST024,PROD-0134,Party supplies,Party Favors,2024-01-24,111.75,Memphis,TN,"Memphis, TN",Gift Shop
+CUST025,PROD-0135,Stationery & writing,Stationery Set,2024-08-04,47.45,Detroit,MI,"Detroit, MI",Stationery Store
+CUST025,PROD-0136,Stickers pins & magnets,Vinyl Decal Stickers,2024-12-29,47.7,Detroit,MI,"Detroit, MI",Stationery Store
+CUST025,PROD-0137,Stationery & writing,Notecards,2024-01-13,124.63,Detroit,MI,"Detroit, MI",Stationery Store
+CUST025,PROD-0138,Stationery & writing,Desk Organizer,2024-12-09,88.8,Detroit,MI,"Detroit, MI",Stationery Store
+CUST025,PROD-0139,Stationery & writing,Writing Journal,2024-02-03,80.07,Detroit,MI,"Detroit, MI",Stationery Store
+CUST025,PROD-0140,Stickers pins & magnets,Emoji Sticker Pack,2024-07-03,35.16,Detroit,MI,"Detroit, MI",Stationery Store
+CUST026,PROD-0141,Stickers pins & magnets,Inspirational Quote Stickers,2024-02-26,50.17,Austin,TX,"Austin, TX",Party Store
+CUST026,PROD-0142,Party supplies,Celebration Banner,2024-11-12,150.83,Austin,TX,"Austin, TX",Party Store
+CUST026,PROD-0143,Stickers pins & magnets,Humor Stickers,2024-12-19,62.0,Austin,TX,"Austin, TX",Party Store
+CUST026,PROD-0144,Stickers pins & magnets,Custom Pin Badge,2024-06-02,41.08,Austin,TX,"Austin, TX",Party Store
+CUST026,PROD-0145,Party supplies,Photo Booth Props,2024-03-26,136.38,Austin,TX,"Austin, TX",Party Store
+CUST026,PROD-0146,Party supplies,Party Favors,2024-02-18,59.8,Austin,TX,"Austin, TX",Party Store
+CUST027,PROD-0147,Stationery & writing,Pen Holder,2024-01-03,62.11,Raleigh,NC,"Raleigh, NC",Stationery Store
+CUST027,PROD-0148,Stationery & writing,Calligraphy Set,2024-03-31,77.18,Raleigh,NC,"Raleigh, NC",Stationery Store
+CUST027,PROD-0149,Stationery & writing,Sticky Notes,2024-04-03,57.73,Raleigh,NC,"Raleigh, NC",Stationery Store
+CUST028,PROD-0150,Women's accessories,Hair Accessories,2024-05-07,262.35,Tampa,FL,"Tampa, FL",Boutique
+CUST028,PROD-0151,Women's accessories,Hair Clips,2024-08-10,228.3,Tampa,FL,"Tampa, FL",Boutique
+CUST028,PROD-0152,Women's accessories,Crossbody Bag,2024-07-15,142.41,Tampa,FL,"Tampa, FL",Boutique
+CUST028,PROD-0153,Party supplies,Party Games,2024-01-01,71.57,Tampa,FL,"Tampa, FL",Boutique
+CUST028,PROD-0154,Women's accessories,Earrings,2024-11-08,215.09,Tampa,FL,"Tampa, FL",Boutique
+CUST029,PROD-0155,Stickers pins & magnets,Laptop Sticker Set,2024-10-09,39.86,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST029,PROD-0156,Women's accessories,Fashion Scarf,2024-07-19,168.56,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST029,PROD-0157,Men's accessories,Hat,2024-12-10,92.99,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST030,PROD-0158,Party supplies,Party Napkins,2024-03-11,181.68,Portland,ME,"Portland, ME",Party Store
+CUST030,PROD-0159,Party supplies,Birthday Party Kit,2024-03-25,158.95,Portland,ME,"Portland, ME",Party Store
+CUST030,PROD-0160,Stickers pins & magnets,Water Bottle Stickers,2024-12-20,75.14,Portland,ME,"Portland, ME",Party Store
+CUST031,PROD-0161,Party supplies,Party Hats,2024-04-29,163.74,Minneapolis,MN,"Minneapolis, MN",Party Store
+CUST031,PROD-0162,Party supplies,Tableware Set,2024-03-16,51.47,Minneapolis,MN,"Minneapolis, MN",Party Store
+CUST031,PROD-0163,Party supplies,Cups Set,2024-05-07,39.44,Minneapolis,MN,"Minneapolis, MN",Party Store
+CUST032,PROD-0164,Party supplies,Birthday Party Kit,2024-11-10,176.69,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST032,PROD-0165,Stationery & writing,Gel Pen Set,2024-12-15,108.96,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST032,PROD-0166,Stickers pins & magnets,Funny Quote Sticker Pack,2024-11-02,80.54,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST032,PROD-0167,Stationery & writing,Fountain Pen,2024-06-27,93.22,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST032,PROD-0168,Stickers pins & magnets,Animal Pins,2024-03-18,74.65,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST032,PROD-0169,Stickers pins & magnets,Inspirational Quote Stickers,2024-05-21,68.43,Albuquerque,NM,"Albuquerque, NM",Independent Bookstore
+CUST033,PROD-0170,Stationery & writing,Journal Set,2024-10-18,40.94,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST033,PROD-0171,Party supplies,Themed Party Kit,2024-04-15,139.63,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST033,PROD-0172,Stationery & writing,Ballpoint Pen Pack,2024-07-25,95.14,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST033,PROD-0173,Stickers pins & magnets,Humor Stickers,2024-11-16,41.96,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST033,PROD-0174,Stationery & writing,Writing Pad,2024-05-28,124.46,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST033,PROD-0175,Stationery & writing,Stationery Set,2024-06-09,118.95,Charlotte,NC,"Charlotte, NC",Bookstore & Cafe
+CUST034,PROD-0176,Stickers pins & magnets,Decorative Magnets,2024-04-07,67.95,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0177,Party supplies,Party Favors,2024-01-10,72.99,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0178,Party supplies,Party Hats,2024-08-29,52.14,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0179,Stickers pins & magnets,Animal Pins,2024-05-15,16.73,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0180,Party supplies,Party Hats,2024-04-07,173.49,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0181,Party supplies,Party Hats,2024-12-15,31.13,Portland,ME,"Portland, ME",Party Store
+CUST034,PROD-0182,Stickers pins & magnets,Emoji Sticker Pack,2024-07-27,44.37,Portland,ME,"Portland, ME",Party Store
+CUST035,PROD-0183,Stickers pins & magnets,Decorative Magnets,2024-10-17,60.55,Chicago,IL,"Chicago, IL",Gift Shop
+CUST035,PROD-0184,Stickers pins & magnets,Humor Stickers,2024-05-18,17.35,Chicago,IL,"Chicago, IL",Gift Shop
+CUST035,PROD-0185,Stickers pins & magnets,Water Bottle Stickers,2024-04-28,21.6,Chicago,IL,"Chicago, IL",Gift Shop
+CUST035,PROD-0186,Men's accessories,Tie Set,2024-10-12,163.04,Chicago,IL,"Chicago, IL",Gift Shop
+CUST036,PROD-0187,Stationery & writing,Sticky Notes,2024-02-10,90.4,Louisville,KY,"Louisville, KY",Stationery Store
+CUST036,PROD-0188,Stickers pins & magnets,Humor Stickers,2024-09-20,30.13,Louisville,KY,"Louisville, KY",Stationery Store
+CUST036,PROD-0189,Stationery & writing,Notebook Collection,2024-12-21,135.7,Louisville,KY,"Louisville, KY",Stationery Store
+CUST037,PROD-0190,Stickers pins & magnets,Political Sticker Collection,2024-08-18,67.48,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST037,PROD-0191,Stickers pins & magnets,Animal Pins,2024-05-15,39.0,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST037,PROD-0192,Stickers pins & magnets,Refrigerator Magnets,2024-05-14,53.18,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST037,PROD-0193,Party supplies,Party Hats,2024-05-08,42.81,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST037,PROD-0194,Party supplies,Party Plates,2024-08-27,45.86,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST037,PROD-0195,Party supplies,Photo Booth Props,2024-01-02,195.12,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST038,PROD-0196,Stickers pins & magnets,Bumper Sticker Pack,2024-07-20,43.01,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST038,PROD-0197,Party supplies,Confetti Pack,2024-06-06,79.9,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST038,PROD-0198,Party supplies,Birthday Party Kit,2024-07-21,103.4,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST038,PROD-0199,Stationery & writing,Pen Holder,2024-02-23,71.43,San Diego,CA,"San Diego, CA",Bookstore & Cafe
+CUST039,PROD-0200,Stickers pins & magnets,Funny Quote Sticker Pack,2024-08-27,51.97,San Jose,CA,"San Jose, CA",Bookstore & Cafe
+CUST039,PROD-0201,Stationery & writing,Calligraphy Set,2024-01-03,123.67,San Jose,CA,"San Jose, CA",Bookstore & Cafe
+CUST039,PROD-0202,Stickers pins & magnets,Motivational Pin Set,2024-04-20,38.22,San Jose,CA,"San Jose, CA",Bookstore & Cafe
+CUST039,PROD-0203,Stationery & writing,Sticky Notes,2024-06-24,32.09,San Jose,CA,"San Jose, CA",Bookstore & Cafe
+CUST040,PROD-0204,Stationery & writing,Notebook Collection,2024-11-08,77.79,Houston,TX,"Houston, TX",Children's Bookstore
+CUST040,PROD-0205,Stickers pins & magnets,Enamel Pin Set,2024-09-23,36.76,Houston,TX,"Houston, TX",Children's Bookstore
+CUST040,PROD-0206,Stationery & writing,Pencil Set,2024-10-26,61.65,Houston,TX,"Houston, TX",Children's Bookstore
+CUST041,PROD-0207,Party supplies,Party Napkins,2024-08-24,130.67,Louisville,KY,"Louisville, KY",Gift Shop
+CUST041,PROD-0208,Party supplies,Party Games,2024-07-01,125.97,Louisville,KY,"Louisville, KY",Gift Shop
+CUST041,PROD-0209,Men's accessories,Briefcase,2024-08-29,267.48,Louisville,KY,"Louisville, KY",Gift Shop
+CUST041,PROD-0210,Women's accessories,Jewelry Set,2024-11-14,230.47,Louisville,KY,"Louisville, KY",Gift Shop
+CUST042,PROD-0211,Stationery & writing,Writing Journal,2024-02-13,111.49,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0212,Stationery & writing,Notecards,2024-02-22,143.03,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0213,Stickers pins & magnets,Water Bottle Stickers,2024-08-07,41.82,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0214,Stickers pins & magnets,Refrigerator Magnets,2024-10-05,46.09,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0215,Stickers pins & magnets,Enamel Pin Set,2024-05-27,35.56,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0216,Stationery & writing,Writing Journal,2024-12-30,143.04,New York,NY,"New York, NY",Stationery Store
+CUST042,PROD-0217,Stationery & writing,Gel Pen Set,2024-05-03,41.14,New York,NY,"New York, NY",Stationery Store
+CUST043,PROD-0218,Stickers pins & magnets,Animal Pins,2024-10-14,47.59,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0219,Stickers pins & magnets,Bumper Sticker Pack,2024-07-31,32.45,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0220,Women's accessories,Hair Accessories,2024-02-08,234.87,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0221,Women's accessories,Tote Bag,2024-08-26,193.78,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0222,Men's accessories,Backpack,2024-04-22,50.76,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0223,Women's accessories,Hair Clips,2024-06-13,285.83,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST043,PROD-0224,Stickers pins & magnets,Humor Stickers,2024-12-29,37.59,Milwaukee,WI,"Milwaukee, WI",Boutique
+CUST044,PROD-0225,Women's accessories,Scarf Collection,2024-08-07,229.16,San Francisco,CA,"San Francisco, CA",Gift Shop
+CUST044,PROD-0226,Party supplies,Party Favors,2024-08-02,108.4,San Francisco,CA,"San Francisco, CA",Gift Shop
+CUST044,PROD-0227,Men's accessories,Phone Case,2024-04-19,72.8,San Francisco,CA,"San Francisco, CA",Gift Shop
+CUST044,PROD-0228,Stickers pins & magnets,Custom Pin Badge,2024-12-29,16.35,San Francisco,CA,"San Francisco, CA",Gift Shop
+CUST045,PROD-0229,Stationery & writing,Pencil Set,2024-12-23,65.82,San Jose,CA,"San Jose, CA",Stationery Store
+CUST045,PROD-0230,Stationery & writing,Sticky Notes,2024-05-20,108.12,San Jose,CA,"San Jose, CA",Stationery Store
+CUST045,PROD-0231,Stationery & writing,Notebook Collection,2024-05-25,107.89,San Jose,CA,"San Jose, CA",Stationery Store
+CUST045,PROD-0232,Stickers pins & magnets,Motivational Pin Set,2024-06-24,68.96,San Jose,CA,"San Jose, CA",Stationery Store
+CUST045,PROD-0233,Stationery & writing,Notecards,2024-05-05,136.64,San Jose,CA,"San Jose, CA",Stationery Store
+CUST045,PROD-0234,Stationery & writing,Pencil Set,2024-02-03,70.54,San Jose,CA,"San Jose, CA",Stationery Store
+CUST046,PROD-0235,Party supplies,Streamers,2024-10-24,124.88,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0236,Women's accessories,Crossbody Bag,2024-09-25,60.03,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0237,Men's accessories,Keychain,2024-10-16,75.85,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0238,Women's accessories,Hair Accessories,2024-10-05,135.67,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0239,Women's accessories,Hair Scrunchie Pack,2024-10-18,267.11,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0240,Women's accessories,Necklace,2024-01-05,264.94,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST046,PROD-0241,Party supplies,Streamers,2024-12-16,91.34,Los Angeles,CA,"Los Angeles, CA",Boutique
+CUST047,PROD-0242,Stickers pins & magnets,Decorative Magnets,2024-09-20,33.19,San Diego,CA,"San Diego, CA",Children's Bookstore
+CUST047,PROD-0243,Stationery & writing,Writing Pad,2024-06-02,126.51,San Diego,CA,"San Diego, CA",Children's Bookstore
+CUST047,PROD-0244,Stationery & writing,Pen Holder,2024-01-17,129.06,San Diego,CA,"San Diego, CA",Children's Bookstore
+CUST048,PROD-0245,Stickers pins & magnets,Refrigerator Magnets,2024-09-11,44.26,Raleigh,NC,"Raleigh, NC",Independent Bookstore
+CUST048,PROD-0246,Stickers pins & magnets,Bumper Sticker Pack,2024-08-28,74.94,Raleigh,NC,"Raleigh, NC",Independent Bookstore
+CUST048,PROD-0247,Stickers pins & magnets,Refrigerator Magnets,2024-03-22,71.87,Raleigh,NC,"Raleigh, NC",Independent Bookstore
+CUST048,PROD-0248,Stationery & writing,Notecards,2024-09-19,43.59,Raleigh,NC,"Raleigh, NC",Independent Bookstore
+CUST048,PROD-0249,Stationery & writing,Calligraphy Set,2024-11-25,48.26,Raleigh,NC,"Raleigh, NC",Independent Bookstore
+CUST049,PROD-0250,Women's accessories,Tote Bag,2024-01-02,141.6,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0251,Women's accessories,Jewelry Set,2024-07-30,289.24,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0252,Women's accessories,Tote Bag,2024-03-15,186.44,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0253,Party supplies,Streamers,2024-08-22,65.17,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0254,Stickers pins & magnets,Vinyl Decal Stickers,2024-08-17,77.51,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0255,Stickers pins & magnets,Animal Pins,2024-06-29,82.91,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST049,PROD-0256,Party supplies,Party Plates,2024-04-22,98.13,Albuquerque,NM,"Albuquerque, NM",Boutique
+CUST050,PROD-0257,Stickers pins & magnets,Decorative Magnets,2024-03-15,17.35,Miami,FL,"Miami, FL",Bookstore & Cafe
+CUST050,PROD-0258,Stationery & writing,Gel Pen Set,2024-11-08,29.36,Miami,FL,"Miami, FL",Bookstore & Cafe
+CUST050,PROD-0259,Stationery & writing,Fountain Pen,2024-06-26,141.26,Miami,FL,"Miami, FL",Bookstore & Cafe
+CUST050,PROD-0260,Stickers pins & magnets,Humor Stickers,2024-10-04,60.71,Miami,FL,"Miami, FL",Bookstore & Cafe
+CUST050,PROD-0261,Party supplies,Party Plates,2024-05-27,40.56,Miami,FL,"Miami, FL",Bookstore & Cafe

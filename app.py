@@ -19,6 +19,7 @@ from src.business_classifier import (
 from src import analytics
 from src import location_analytics
 from src import outreach_automation
+from src import brand_product_matcher
 import config
 
 # Page configuration
@@ -523,7 +524,7 @@ def main():
             "Find target businesses for automated outreach based on store type, products, and regional preferences"
         )
         
-        tab1, tab2, tab3 = st.tabs(["Target Finder", "Regional Analysis", "Outreach Export"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Target Finder", "Regional Analysis", "Brand Product Matcher", "Outreach Export"])
         
         with tab1:
             st.subheader("Find Target Businesses for Outreach")
@@ -656,6 +657,136 @@ def main():
                     st.error(f"Error analyzing regional preferences: {str(e)}")
         
         with tab3:
+            st.subheader("Brand Product Matcher")
+            st.markdown("Match Faire brand products (like Hilarious Humanitarian) with potential buyers")
+            
+            # Brand product upload
+            st.write("**Upload Brand Products**")
+            brand_file = st.file_uploader(
+                "Upload Brand Products CSV",
+                type=["csv"],
+                help="CSV with columns: product_id, product_name, product_category, product_type",
+                key="brand_upload"
+            )
+            
+            # Or use default Hilarious Humanitarian data
+            use_hilarious = st.checkbox("Use Hilarious Humanitarian Sample Data", value=True, key="use_hilarious")
+            
+            if brand_file is not None or use_hilarious:
+                try:
+                    if use_hilarious and brand_file is None:
+                        brand_products = brand_product_matcher.load_brand_products("data/hilarious_humanitarian_products.csv")
+                        st.success("Loaded Hilarious Humanitarian product data")
+                    elif brand_file is not None:
+                        # Save uploaded file temporarily
+                        import tempfile
+                        import os
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_file:
+                            tmp_file.write(brand_file.getvalue())
+                            tmp_path = tmp_file.name
+                        brand_products = brand_product_matcher.load_brand_products(tmp_path)
+                        os.unlink(tmp_path)
+                        st.success(f"Loaded {len(brand_products)} products from uploaded file")
+                    
+                    # Display brand products
+                    with st.expander("View Brand Products"):
+                        st.dataframe(brand_products, use_container_width=True, hide_index=True)
+                    
+                    # Market fit analysis
+                    st.subheader("Market Fit Analysis")
+                    if st.button("Analyze Market Fit", key="analyze_market_fit"):
+                        try:
+                            market_fit = brand_product_matcher.analyze_brand_market_fit(df, brand_products)
+                            
+                            st.metric("Market Fit Score", f"{market_fit['market_fit_score']:.1f}%")
+                            
+                            # Category breakdown
+                            st.write("**Category Breakdown**")
+                            for category, data in market_fit["category_breakdown"].items():
+                                with st.expander(f"📦 {category}"):
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("Buyers", f"{data['num_buyers']:,}")
+                                    with col2:
+                                        st.metric("Total Revenue", f"${data['total_revenue']:,.2f}")
+                                    with col3:
+                                        st.metric("Avg Transaction", f"${data['avg_transaction']:,.2f}")
+                                    
+                                    if data["top_business_types"]:
+                                        st.write("**Top Business Types**")
+                                        st.json(data["top_business_types"])
+                        except Exception as e:
+                            st.error(f"Error analyzing market fit: {str(e)}")
+                    
+                    # Find matches
+                    st.subheader("Find Potential Buyers")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        match_states = sorted([s for s in df["state"].unique() if s and str(s) != "nan"]) if "state" in df.columns else []
+                        match_state = st.selectbox(
+                            "Filter by State (Optional)",
+                            [None] + match_states,
+                            key="match_state"
+                        )
+                    
+                    with col2:
+                        match_biz_cats = sorted(df["business_category"].unique().tolist())
+                        match_biz_cat = st.selectbox(
+                            "Filter by Business Category (Optional)",
+                            [None] + match_biz_cats,
+                            key="match_biz_cat"
+                        )
+                    
+                    max_matches = st.slider("Maximum Matches", 10, 100, 30, key="max_matches")
+                    
+                    if st.button("Find Potential Buyers", key="find_brand_buyers"):
+                        try:
+                            matches = brand_product_matcher.generate_brand_outreach_list(
+                                df,
+                                brand_products,
+                                location_filter=match_state,
+                                business_category_filter=match_biz_cat,
+                                max_results=max_matches
+                            )
+                            
+                            if len(matches) > 0:
+                                st.success(f"Found {len(matches)} potential buyers for brand products!")
+                                
+                                # Display matches
+                                st.dataframe(
+                                    matches[["customer_id", "location", "business_category", 
+                                            "brand_category", "recommended_brand_products",
+                                            "current_products", "opportunity_score"]],
+                                    use_container_width=True,
+                                    hide_index=True
+                                )
+                                
+                                # Store for export
+                                st.session_state.brand_matches = matches
+                                
+                                # Summary
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.metric("Total Matches", len(matches))
+                                with col2:
+                                    st.metric("Unique Locations", matches["location"].nunique())
+                                with col3:
+                                    st.metric("Avg Opportunity Score", f"{matches['opportunity_score'].mean():.1f}")
+                            else:
+                                st.info("No matches found. Try adjusting filters or check if brand products match your sales data categories.")
+                        except Exception as e:
+                            st.error(f"Error finding matches: {str(e)}")
+                            import traceback
+                            st.code(traceback.format_exc())
+                
+                except Exception as e:
+                    st.error(f"Error loading brand products: {str(e)}")
+            else:
+                st.info("Upload a brand products CSV or use the Hilarious Humanitarian sample data")
+        
+        with tab4:
             st.subheader("Export Outreach Data")
             
             if "outreach_targets" in st.session_state and len(st.session_state.outreach_targets) > 0:
@@ -710,7 +841,229 @@ def main():
                         )
                         st.text_area("Sample Email Template", sample_email, height=200)
             else:
-                st.info("Generate an outreach list first using the 'Target Finder' tab")
+                st.info("Generate an outreach list first using the 'Target Finder' or 'Brand Product Matcher' tab")
+            
+            # Brand matches export
+            if "brand_matches" in st.session_state and len(st.session_state.brand_matches) > 0:
+                st.divider()
+                st.subheader("Export Brand Matches")
+                
+                brand_matches = st.session_state.brand_matches
+                st.info(f"Ready to export {len(brand_matches)} brand product matches")
+                
+                brand_export_format = st.selectbox(
+                    "Export Format",
+                    ["CSV", "JSON"],
+                    key="brand_export_format"
+                )
+                
+                if brand_export_format == "CSV":
+                    brand_csv = brand_matches.to_csv(index=False)
+                    st.download_button(
+                        label="Download Brand Matches CSV",
+                        data=brand_csv,
+                        file_name=f"brand_matches_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                        key="download_brand_csv"
+                    )
+                else:
+                    brand_json = brand_matches.to_json(orient="records", indent=2)
+                    st.download_button(
+                        label="Download Brand Matches JSON",
+                        data=brand_json,
+                        file_name=f"brand_matches_{datetime.now().strftime('%Y%m%d')}.json",
+                        mime="application/json",
+                        key="download_brand_json"
+                    )
+    
+    # Brand-Specific Matching Section
+    st.header("🎯 Brand-Specific Product Matching")
+    st.markdown(
+        "Match your brand's products with businesses that would be perfect customers"
+    )
+    
+    # Load brand products if available
+    brand_file = "data/hilarious_humanitarian_products.csv"
+    brand_products_available = False
+    
+    try:
+        import os
+        if os.path.exists(brand_file):
+            brand_products = brand_matching.load_brand_products(brand_file)
+            brand_products_available = True
+            st.success(f"✅ Loaded {len(brand_products)} products from Hilarious Humanitarian")
+    except Exception as e:
+        st.info("💡 Upload a brand product CSV file to use brand-specific matching")
+    
+    if brand_products_available:
+        tab1, tab2, tab3 = st.tabs(["Find Matches", "Regional Fit", "Export Matches"])
+        
+        with tab1:
+            st.subheader("Find Businesses for Your Brand")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Business categories to target
+                all_biz_cats = sorted(df["business_category"].unique().tolist())
+                selected_biz_cats = st.multiselect(
+                    "Business Categories to Target",
+                    all_biz_cats,
+                    default=["Gift Shop", "Bookstore & Gifts", "Stationery Store"] if "Gift Shop" in all_biz_cats else all_biz_cats[:3],
+                    key="brand_biz_cats"
+                )
+            
+            with col2:
+                # Location filter
+                if "state" in df.columns:
+                    states = sorted([s for s in df["state"].unique() if s and str(s) != "nan"])
+                elif "location" in df.columns:
+                    states = sorted(list(set([loc.split(",")[-1].strip() for loc in df["location"].unique() if loc and "," in str(loc)])))
+                else:
+                    states = []
+                
+                brand_location = st.selectbox(
+                    "Target State (Optional)",
+                    [None] + states,
+                    key="brand_location"
+                )
+            
+            brand_max_results = st.slider("Maximum Matches", 10, 100, 30, key="brand_max")
+            
+            if st.button("Find Brand Matches", key="find_brand_matches"):
+                try:
+                    matches = brand_matching.find_businesses_for_brand(
+                        df,
+                        brand_products,
+                        business_categories=selected_biz_cats if selected_biz_cats else None,
+                        location_filter=brand_location,
+                        min_match_score=0.3
+                    )
+                    
+                    if len(matches) > 0:
+                        st.success(f"Found {len(matches)} businesses that match your brand!")
+                        
+                        # Display matches
+                        display_cols = ["customer_id", "business_category", "location", 
+                                      "current_product_categories", "match_score", 
+                                      "recommended_products", "total_revenue"]
+                        st.dataframe(
+                            matches[display_cols].head(brand_max_results),
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Store in session state
+                        st.session_state.brand_matches = matches.head(brand_max_results)
+                        
+                        # Summary metrics
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Total Matches", len(matches))
+                        with col2:
+                            st.metric("Avg Match Score", f"{matches['match_score'].mean():.2%}")
+                        with col3:
+                            st.metric("Unique Locations", matches["location"].nunique())
+                        
+                        # Chart: Match score distribution
+                        fig = px.histogram(
+                            matches.head(brand_max_results),
+                            x="match_score",
+                            nbins=20,
+                            title="Match Score Distribution",
+                            labels={"match_score": "Match Score", "count": "Number of Businesses"}
+                        )
+                        fig.update_layout(height=300)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("No matches found. Try adjusting your criteria.")
+                except Exception as e:
+                    st.error(f"Error finding matches: {str(e)}")
+        
+        with tab2:
+            st.subheader("Regional Fit Analysis")
+            st.markdown("See which states/regions are the best fit for your brand")
+            
+            if st.button("Analyze Regional Fit", key="analyze_regional_fit"):
+                try:
+                    regional_fit = brand_matching.analyze_brand_regional_fit(df, brand_products)
+                    
+                    if regional_fit:
+                        # Create DataFrame for display
+                        fit_data = []
+                        for state, data in regional_fit.items():
+                            fit_data.append({
+                                "State": state,
+                                "Total Businesses": data["total_businesses"],
+                                "Businesses with Overlap": data["businesses_with_overlap"],
+                                "Category Overlap": data["category_overlap"],
+                                "Fit Score": f"{data['fit_score']:.2%}"
+                            })
+                        
+                        fit_df = pd.DataFrame(fit_data)
+                        # Sort by fit score (convert percentage to float for sorting)
+                        fit_df["Fit_Score_Num"] = fit_df["Fit Score"].str.rstrip('%').astype('float') / 100
+                        fit_df = fit_df.sort_values("Fit_Score_Num", ascending=False).drop("Fit_Score_Num", axis=1)
+                        
+                        st.dataframe(fit_df.head(20), use_container_width=True, hide_index=True)
+                        
+                        # Chart: Top states by fit score
+                        top_states = fit_df.head(15).copy()
+                        top_states["Fit_Score_Num"] = top_states["Fit Score"].str.rstrip('%').astype('float')
+                        fig = px.bar(
+                            top_states,
+                            x="State",
+                            y="Fit_Score_Num",
+                            title="Top States by Brand Fit Score",
+                            labels={"Fit_Score_Num": "Fit Score (%)"}
+                        )
+                        fig.update_layout(height=400)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("Regional analysis not available. Make sure your data includes location information.")
+                except Exception as e:
+                    st.error(f"Error analyzing regional fit: {str(e)}")
+        
+        with tab3:
+            st.subheader("Export Brand Matches")
+            
+            if "brand_matches" in st.session_state and len(st.session_state.brand_matches) > 0:
+                matches = st.session_state.brand_matches
+                
+                st.info(f"Ready to export {len(matches)} brand matches")
+                
+                export_format = st.selectbox(
+                    "Export Format",
+                    ["CSV", "JSON"],
+                    key="brand_export_format"
+                )
+                
+                if export_format == "CSV":
+                    csv_data = matches.to_csv(index=False)
+                    st.download_button(
+                        label="Download Matches (CSV)",
+                        data=csv_data,
+                        file_name=f"brand_matches_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv"
+                    )
+                else:
+                    json_data = matches.to_json(orient="records", indent=2)
+                    st.download_button(
+                        label="Download Matches (JSON)",
+                        data=json_data,
+                        file_name=f"brand_matches_{datetime.now().strftime('%Y%m%d')}.json",
+                        mime="application/json"
+                    )
+                
+                # Show brand product summary
+                st.subheader("Brand Products Summary")
+                st.dataframe(
+                    brand_products[["product_name", "product_category"]],
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.info("Find brand matches first using the 'Find Matches' tab")
     
     # Export Section
     st.header("💾 Export Results")

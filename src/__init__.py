@@ -7,6 +7,6 @@ from . import business_classifier
 from . import analytics
 from . import location_analytics
 from . import outreach_automation
+from . import brand_product_matcher
 
-__all__ = ['data_processor', 'business_classifier', 'analytics', 'location_analytics', 'outreach_automation']
-
+__all__ = ['data_processor', 'business_classifier', 'analytics', 'location_analytics', 'outreach_automation', 'brand_product_matcher']

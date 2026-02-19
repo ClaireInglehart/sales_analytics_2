@@ -129,6 +129,16 @@ def clean_sales_data(df: pd.DataFrame) -> pd.DataFrame:
     if "product_id" in df.columns:
         df["product_id"] = df["product_id"].astype(str).str.strip()
     
+    # Create location column if city and state exist but location doesn't
+    if "city" in df.columns and "state" in df.columns and "location" not in df.columns:
+        df["location"] = df["city"].astype(str) + ", " + df["state"].astype(str)
+    
+    # Ensure location columns are strings
+    for col in ["city", "state", "location"]:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
+            df[col] = df[col].replace("nan", "")
+    
     return df
 
 

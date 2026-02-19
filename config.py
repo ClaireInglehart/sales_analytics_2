@@ -34,7 +34,10 @@ COLUMN_MAPPINGS = {
     "product_id": ["product_id", "product", "item_id", "item"],
     "product_category": ["product_category", "category", "product_type"],
     "transaction_date": ["transaction_date", "date", "sale_date", "purchase_date"],
-    "sales_amount": ["sales_amount", "amount", "revenue", "price", "total"]
+    "sales_amount": ["sales_amount", "amount", "revenue", "price", "total"],
+    "city": ["city", "customer_city", "buyer_city"],
+    "state": ["state", "customer_state", "buyer_state", "province"],
+    "location": ["location", "city_state", "full_location"]
 }
 
 # Date format for parsing

@@ -17,6 +17,8 @@ from src.business_classifier import (
     get_unique_customers,
 )
 from src import analytics
+from src import location_analytics
+from src import outreach_automation
 import config
 
 # Page configuration
@@ -352,6 +354,324 @@ def main():
                 st.dataframe(pivot_trends, use_container_width=True)
         except Exception as e:
             st.error(f"Error calculating trends: {str(e)}")
+    
+    # Location-Based Recommendations
+    if "location" in df.columns or ("city" in df.columns and "state" in df.columns):
+        st.header("📍 Location-Based Recommendations")
+        st.markdown(
+            "Find similar businesses in nearby locations that might want to purchase the same products"
+        )
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            business_cats = sorted(df["business_category"].unique().tolist())
+            selected_biz_cat = st.selectbox(
+                "Business Category",
+                business_cats,
+                key="loc_biz_cat"
+            )
+        
+        with col2:
+            product_cats = sorted(df["product_category"].unique().tolist())
+            selected_prod_cat = st.selectbox(
+                "Product Category",
+                product_cats,
+                key="loc_prod_cat"
+            )
+        
+        with col3:
+            # Get unique locations
+            if "location" in df.columns:
+                locations = sorted([str(loc) for loc in df["location"].unique() 
+                                  if loc and str(loc) != "nan" and str(loc) != ""])
+            elif "city" in df.columns and "state" in df.columns:
+                # Create unique location combinations
+                location_set = set()
+                for _, row in df[["city", "state"]].drop_duplicates().iterrows():
+                    city = str(row["city"]) if pd.notna(row["city"]) else ""
+                    state = str(row["state"]) if pd.notna(row["state"]) else ""
+                    if city and state and city != "nan" and state != "nan":
+                        location_set.add(f"{city}, {state}")
+                locations = sorted(list(location_set))
+            else:
+                locations = []
+            
+            selected_location = st.selectbox(
+                "Location (City, State)",
+                locations,
+                key="loc_select"
+            )
+        
+        if st.button("Find Similar Businesses", key="find_similar"):
+            try:
+                recommendations = location_analytics.find_similar_businesses_by_location(
+                    df,
+                    business_category=selected_biz_cat,
+                    product_category=selected_prod_cat,
+                    location=selected_location,
+                    n_recommendations=20
+                )
+                
+                if len(recommendations) > 0:
+                    st.success(f"Found {len(recommendations)} similar businesses in nearby locations")
+                    
+                    # Display recommendations
+                    st.dataframe(
+                        recommendations[["customer_id", "location", "business_category", 
+                                       "current_product_categories", "total_revenue"]],
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                    
+                    # Chart showing opportunities by location
+                    if len(recommendations) > 0:
+                        fig = px.bar(
+                            recommendations.head(10),
+                            x="location",
+                            y="total_revenue",
+                            color="current_product_categories",
+                            title="Top Recommended Businesses by Location",
+                            labels={
+                                "location": "Location",
+                                "total_revenue": "Total Revenue ($)",
+                                "current_product_categories": "Product Categories"
+                            }
+                        )
+                        fig.update_layout(height=400)
+                        st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info(
+                        f"No similar businesses found in {selected_location}. "
+                        "Try expanding your search or selecting a different location."
+                    )
+            except Exception as e:
+                st.error(f"Error finding recommendations: {str(e)}")
+        
+        # Location Insights
+        st.subheader("🌍 Location Insights")
+        try:
+            location_insights = location_analytics.get_location_insights(df)
+            
+            if location_insights:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write("**Top Locations by Number of Businesses**")
+                    if "top_locations" in location_insights:
+                        top_locs = pd.DataFrame(
+                            list(location_insights["top_locations"].items()),
+                            columns=["Location", "Number of Businesses"]
+                        )
+                        st.dataframe(top_locs, use_container_width=True, hide_index=True)
+                
+                with col2:
+                    st.write("**Top Locations by Revenue**")
+                    if "top_sales_locations" in location_insights:
+                        top_sales = pd.DataFrame(
+                            list(location_insights["top_sales_locations"].items()),
+                            columns=["Location", "Total Revenue"]
+                        )
+                        top_sales["Total Revenue"] = top_sales["Total Revenue"].apply(lambda x: f"${x:,.2f}")
+                        st.dataframe(top_sales, use_container_width=True, hide_index=True)
+        except Exception as e:
+            st.info("Location insights not available. Make sure your data includes location information.")
+    
+    # Automated Outreach Section
+    if "location" in df.columns or ("city" in df.columns and "state" in df.columns):
+        st.header("📧 Automated Outreach & Regional Targeting")
+        st.markdown(
+            "Find target businesses for automated outreach based on store type, products, and regional preferences"
+        )
+        
+        tab1, tab2, tab3 = st.tabs(["Target Finder", "Regional Analysis", "Outreach Export"])
+        
+        with tab1:
+            st.subheader("Find Target Businesses for Outreach")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                biz_cats = sorted(df["business_category"].unique().tolist())
+                outreach_biz_cat = st.selectbox(
+                    "Business Category to Target",
+                    biz_cats,
+                    key="outreach_biz"
+                )
+            
+            with col2:
+                prod_cats = sorted(df["product_category"].unique().tolist())
+                outreach_prod_cat = st.selectbox(
+                    "Product Category to Promote",
+                    prod_cats,
+                    key="outreach_prod"
+                )
+            
+            with col3:
+                # Get unique states
+                if "state" in df.columns:
+                    states = sorted([s for s in df["state"].unique() if s and str(s) != "nan"])
+                elif "location" in df.columns:
+                    states = sorted(list(set([loc.split(",")[-1].strip() for loc in df["location"].unique() if loc and "," in str(loc)])))
+                else:
+                    states = []
+                
+                outreach_state = st.selectbox(
+                    "Target State (Optional)",
+                    [None] + states,
+                    key="outreach_state"
+                )
+            
+            max_targets = st.slider("Maximum Targets", 10, 100, 25, key="max_targets")
+            
+            if st.button("Generate Outreach List", key="generate_outreach"):
+                try:
+                    targets = outreach_automation.generate_outreach_list(
+                        df,
+                        business_category=outreach_biz_cat,
+                        product_category=outreach_prod_cat,
+                        location_filter=outreach_state,
+                        max_results=max_targets
+                    )
+                    
+                    if len(targets) > 0:
+                        st.success(f"Found {len(targets)} target businesses for outreach!")
+                        
+                        # Display targets
+                        st.dataframe(
+                            targets[["customer_id", "location", "current_products", 
+                                    "recommended_product", "similar_products", "total_revenue", 
+                                    "opportunity_score"]],
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Store in session state for export
+                        st.session_state.outreach_targets = targets
+                        
+                        # Summary stats
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Total Targets", len(targets))
+                        with col2:
+                            st.metric("Avg Revenue", f"${targets['total_revenue'].mean():,.2f}")
+                        with col3:
+                            st.metric("Unique Locations", targets["location"].nunique())
+                    else:
+                        st.info("No target businesses found. Try different criteria.")
+                except Exception as e:
+                    st.error(f"Error generating outreach list: {str(e)}")
+        
+        with tab2:
+            st.subheader("Regional Product Preferences")
+            st.markdown("See which products are popular in different states/regions")
+            
+            if st.button("Analyze Regional Preferences", key="analyze_regional"):
+                try:
+                    regional_data = outreach_automation.analyze_regional_preferences(df)
+                    
+                    if regional_data and "top_products_by_state" in regional_data:
+                        # Display top products by state
+                        for state, products in list(regional_data["top_products_by_state"].items())[:10]:
+                            with st.expander(f"📍 {state}"):
+                                products_df = pd.DataFrame(products)
+                                st.dataframe(
+                                    products_df,
+                                    use_container_width=True,
+                                    hide_index=True
+                                )
+                        
+                        # Chart: Product popularity by state
+                        if "regional_data" in regional_data:
+                            regional_df = regional_data["regional_data"]
+                            
+                            # Top states by revenue
+                            top_states = regional_df.groupby("state")["total_revenue"].sum().nlargest(10)
+                            
+                            fig = px.bar(
+                                x=top_states.index,
+                                y=top_states.values,
+                                title="Top States by Total Revenue",
+                                labels={"x": "State", "y": "Total Revenue ($)"}
+                            )
+                            fig.update_layout(height=400)
+                            st.plotly_chart(fig, use_container_width=True)
+                            
+                            # Product category by state heatmap
+                            pivot_regional = regional_df.pivot_table(
+                                index="state",
+                                columns="product_category",
+                                values="total_revenue",
+                                fill_value=0
+                            )
+                            
+                            fig2 = px.imshow(
+                                pivot_regional.head(15),
+                                labels=dict(x="Product Category", y="State", color="Revenue"),
+                                aspect="auto",
+                                title="Product Category Revenue by State"
+                            )
+                            fig2.update_layout(height=600)
+                            st.plotly_chart(fig2, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error analyzing regional preferences: {str(e)}")
+        
+        with tab3:
+            st.subheader("Export Outreach Data")
+            
+            if "outreach_targets" in st.session_state and len(st.session_state.outreach_targets) > 0:
+                targets = st.session_state.outreach_targets
+                
+                st.info(f"Ready to export {len(targets)} target businesses")
+                
+                export_format = st.selectbox(
+                    "Export Format",
+                    ["CSV", "JSON", "Email Templates"],
+                    key="export_format"
+                )
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if export_format == "CSV":
+                        csv_data = targets.to_csv(index=False)
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv_data,
+                            file_name=f"outreach_targets_{datetime.now().strftime('%Y%m%d')}.csv",
+                            mime="text/csv"
+                        )
+                    elif export_format == "JSON":
+                        json_data = targets.to_json(orient="records", indent=2)
+                        st.download_button(
+                            label="Download JSON",
+                            data=json_data,
+                            file_name=f"outreach_targets_{datetime.now().strftime('%Y%m%d')}.json",
+                            mime="application/json"
+                        )
+                    else:  # Email Templates
+                        email_data = outreach_automation.export_outreach_data(targets, format="email_list")
+                        st.download_button(
+                            label="Download Email Templates",
+                            data=email_data,
+                            file_name=f"email_templates_{datetime.now().strftime('%Y%m%d')}.txt",
+                            mime="text/plain"
+                        )
+                
+                with col2:
+                    # Preview email template
+                    if export_format == "Email Templates" and len(targets) > 0:
+                        sample_email = outreach_automation.generate_email_template(
+                            targets.iloc[0]["customer_id"],
+                            targets.iloc[0]["business_category"],
+                            targets.iloc[0]["recommended_product"],
+                            targets.iloc[0]["location"],
+                            targets.iloc[0]["current_products"],
+                            targets.iloc[0]["similar_products"]
+                        )
+                        st.text_area("Sample Email Template", sample_email, height=200)
+            else:
+                st.info("Generate an outreach list first using the 'Target Finder' tab")
     
     # Export Section
     st.header("💾 Export Results")

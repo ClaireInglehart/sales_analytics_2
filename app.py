@@ -360,7 +360,13 @@ def main():
     if "transaction_date" in filtered_df.columns and filtered_df["transaction_date"].notna().any():
         st.header("📅 Trends Over Time")
         
-        period = st.selectbox("Time Period", ["D", "W", "M", "Q", "Y"], index=2)
+        period_labels = {"D": "Day", "W": "Week", "M": "Month", "Q": "Quarter", "Y": "Year"}
+        period = st.selectbox(
+            "Time Period",
+            ["D", "W", "M", "Q", "Y"],
+            index=2,
+            format_func=lambda x: period_labels[x],
+        )
         
         try:
             trends = analytics.calculate_trends(filtered_df, period=period)
@@ -372,7 +378,7 @@ def main():
                 y="sales_amount",
                 color="business_category",
                 line_group="product_category",
-                title=f"Revenue Trends by {period} Period",
+                title=f"Revenue Trends by {period_labels[period]}",
                 labels={
                     "period": "Period",
                     "sales_amount": "Revenue ($)",

@@ -36,6 +36,34 @@ def calculate_category_matrix(df: pd.DataFrame) -> pd.DataFrame:
     return matrix
 
 
+def calculate_sub_category_matrix(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate cross-tabulation matrix: Business Sub-Category x Product Category (revenue).
+
+    Use when business_sub_category column exists. Rows are sub-categories (e.g. "Hardware Store"),
+    columns are product categories.
+
+    Args:
+        df: DataFrame with business_sub_category and product_category columns.
+
+    Returns:
+        Pivot table with business sub-categories as rows, product categories as columns.
+    """
+    if "business_sub_category" not in df.columns or "product_category" not in df.columns:
+        raise ValueError(
+            "DataFrame must contain 'business_sub_category' and 'product_category' columns"
+        )
+    matrix = pd.pivot_table(
+        df,
+        values="sales_amount",
+        index="business_sub_category",
+        columns="product_category",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    return matrix
+
+
 def calculate_transaction_counts(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate transaction counts by business-product category combination
@@ -95,34 +123,41 @@ def calculate_average_transaction_value(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_top_combinations(
-    df: pd.DataFrame, n: int = 10, metric: str = "revenue"
+    df: pd.DataFrame,
+    n: int = 10,
+    metric: str = "revenue",
+    level: str = "category",
 ) -> pd.DataFrame:
     """
-    Get top N business-product category combinations
-    
+    Get top N business-product category combinations.
+
     Args:
-        df: DataFrame with business_category and product_category columns
+        df: DataFrame with business_category and product_category columns;
+            for level='sub_category' must also have business_sub_category.
         n: Number of top combinations to return
         metric: Metric to rank by ('revenue', 'count', 'avg_value')
-        
+        level: 'category' (business_category) or 'sub_category' (business_sub_category).
+               If 'sub_category' and column is missing, falls back to category.
+
     Returns:
-        DataFrame with top combinations
+        DataFrame with top combinations (columns include business_category or business_sub_category).
     """
-    if "business_category" not in df.columns or "product_category" not in df.columns:
+    if "product_category" not in df.columns:
+        raise ValueError("DataFrame must contain 'product_category' column")
+
+    use_sub = level == "sub_category" and "business_sub_category" in df.columns
+    group_col = "business_sub_category" if use_sub else "business_category"
+    if group_col not in df.columns:
         raise ValueError(
-            "DataFrame must contain 'business_category' and 'product_category' columns"
+            f"DataFrame must contain '{group_col}' column"
         )
-    
-    # Group by combination
-    grouped = df.groupby(["business_category", "product_category"]).agg(
-        {
-            "sales_amount": ["sum", "mean", "count"],
-        }
+
+    grouped = df.groupby([group_col, "product_category"]).agg(
+        {"sales_amount": ["sum", "mean", "count"]}
     )
     grouped.columns = ["total_revenue", "avg_value", "transaction_count"]
     grouped = grouped.reset_index()
-    
-    # Select metric for ranking
+
     if metric == "revenue":
         sort_col = "total_revenue"
     elif metric == "count":
@@ -131,10 +166,8 @@ def get_top_combinations(
         sort_col = "avg_value"
     else:
         sort_col = "total_revenue"
-    
-    # Sort and get top N
+
     top = grouped.nlargest(n, sort_col)
-    
     return top
 
 
@@ -246,6 +279,7 @@ def get_summary_statistics(df: pd.DataFrame) -> Dict:
             else None,
         },
     }
-    
+    if "business_sub_category" in df.columns:
+        stats["unique_business_sub_categories"] = df["business_sub_category"].nunique()
     return stats
 

@@ -176,19 +176,31 @@ def process_sales_data(file_path: Union[str, object]) -> pd.DataFrame:
 
 
 def merge_business_categories(
-    df: pd.DataFrame, business_mapping: Dict[str, str]
+    df: pd.DataFrame, business_mapping: Dict[str, tuple]
 ) -> pd.DataFrame:
     """
-    Merge business category information into sales data
-    
+    Merge business category information into sales data.
+
     Args:
         df: Sales DataFrame
-        business_mapping: Dictionary mapping customer_id to business_category
-        
+        business_mapping: Dictionary mapping customer_id to (business_category, business_sub_category or None).
+                          From load_business_mapping or create_business_mapping.
+
     Returns:
-        DataFrame with business_category column added
+        DataFrame with business_category and optionally business_sub_category columns added.
+        When sub_category is None, business_sub_category is set to "Unspecified".
     """
     df = df.copy()
-    df["business_category"] = df["customer_id"].map(business_mapping)
+
+    def get_category(cid):
+        pair = business_mapping.get(str(cid), ("Unknown", None))
+        return pair[0]
+
+    def get_sub_category(cid):
+        pair = business_mapping.get(str(cid), ("Unknown", None))
+        return pair[1] if pair[1] is not None else "Unspecified"
+
+    df["business_category"] = df["customer_id"].map(get_category)
+    df["business_sub_category"] = df["customer_id"].map(get_sub_category)
     return df
 

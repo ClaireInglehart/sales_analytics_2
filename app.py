@@ -322,7 +322,8 @@ def main():
         fig.update_layout(height=500)
         st.plotly_chart(fig, use_container_width=True)
 
-        st.dataframe(top_combinations, use_container_width=True)
+        with st.expander("View Top Combinations Table"):
+            st.dataframe(top_combinations, use_container_width=True)
     except Exception as e:
         st.error(f"Error calculating top combinations: {str(e)}")
     
@@ -351,8 +352,8 @@ def main():
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
-        # Table
-        st.dataframe(opportunities, use_container_width=True)
+        with st.expander("View Opportunities Table"):
+            st.dataframe(opportunities, use_container_width=True)
     except Exception as e:
         st.error(f"Error calculating opportunities: {str(e)}")
     

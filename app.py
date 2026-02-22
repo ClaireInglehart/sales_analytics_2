@@ -364,8 +364,8 @@ def main():
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
-        # Table
-        st.dataframe(opportunities, use_container_width=True)
+        with st.expander("View Opportunities Table"):
+            st.dataframe(opportunities, use_container_width=True)
     except Exception as e:
         st.error(f"Error calculating opportunities: {str(e)}")
     
@@ -396,7 +396,7 @@ def main():
                 y="sales_amount",
                 color="business_category",
                 line_group="product_category",
-                title=f"Revenue Trends by {period} Period",
+                title=f"Revenue Trends by {period_labels[period]}",
                 labels={
                     "period": "Period",
                     "sales_amount": "Revenue ($)",

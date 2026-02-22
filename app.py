@@ -20,6 +20,7 @@ from src import analytics
 from src import location_analytics
 from src import outreach_automation
 from src import brand_product_matcher
+from src import product_level_analytics
 import config
 
 # Page configuration
@@ -54,7 +55,12 @@ def load_sample_data():
 def main():
     st.title("📊 Sales Analytics Dashboard")
     st.markdown(
-        "Analyze which business categories purchase which product categories to identify growth opportunities"
+        """
+        **Welcome!** This dashboard helps you understand which types of businesses buy which products, 
+        so you can target the right customers and grow your sales.
+        
+        👉 **Start by loading your sales data** in the sidebar, or use the sample data to explore.
+        """
     )
 
     # Sidebar for data upload and configuration
@@ -90,24 +96,30 @@ def main():
                 st.error(f"Error processing file: {str(e)}")
         
         # Upload business mapping
-        st.header("🏢 Business Classification")
+        st.subheader("🏢 Business Types (Optional)")
+        st.markdown("""
+        **Why this matters:** Knowing what type of store each customer is helps you 
+        find similar stores to target.
+        """)
+        
         mapping_file = st.file_uploader(
-            "Upload Business Mapping (CSV)",
+            "📋 Upload Business Types (CSV)",
             type=["csv"],
-            help="CSV with customer_id, business_category; optional column business_sub_category",
+            help="A file matching customer names to their business type (e.g., 'Gift Shop', 'Bookstore')"
         )
         
         if mapping_file is not None:
             try:
                 mapping = load_business_mapping(mapping_file)
                 st.session_state.business_mapping = mapping
-                st.success(f"Loaded mapping for {len(mapping)} customers")
+                st.success(f"✅ Loaded business types for {len(mapping)} customers")
             except Exception as e:
-                st.error(f"Error loading mapping: {str(e)}")
+                st.error(f"Error loading file: {str(e)}")
         
         # Auto-classify option
         if st.session_state.sales_data is not None:
-            if st.button("Auto-classify Businesses"):
+            st.markdown("**Don't have business types?**")
+            if st.button("🤖 Auto-Detect Business Types", help="We'll guess based on customer names"):
                 customers = get_unique_customers(st.session_state.sales_data)
                 mapping = create_business_mapping(
                     customers,
@@ -115,7 +127,7 @@ def main():
                     use_keywords=True,
                 )
                 st.session_state.business_mapping = mapping
-                st.success(f"Classified {len(mapping)} customers")
+                st.success(f"✅ Classified {len(mapping)} customers automatically")
                 st.rerun()
         
         # Manual mapping interface
@@ -123,12 +135,18 @@ def main():
             st.session_state.sales_data is not None
             and st.session_state.business_mapping is None
         ):
-            st.info("Upload a mapping file or use auto-classify to proceed")
+            st.info("💡 Tip: Upload business types or click 'Auto-Detect' to unlock more features")
     
     # Main content area
     if st.session_state.sales_data is None:
         st.info(
-            "👈 Upload sales data using the sidebar, or check 'Use Sample Data' to explore with example data."
+            """
+            👈 **Get Started:** 
+            - Check "Try with Sample Data" in the sidebar to see how it works, OR
+            - Upload your own sales data file
+            
+            Once data is loaded, you'll see insights about which businesses buy which products!
+            """
         )
         return
     
@@ -159,47 +177,45 @@ def main():
     df = st.session_state.processed_data
     
     # Filters
-    st.header("🔍 Filters")
-    has_sub_category = "business_sub_category" in df.columns
-    n_filter_cols = 4 if has_sub_category else 3
-    cols = st.columns(n_filter_cols)
-
-    with cols[0]:
+    st.header("🔍 Filter Your Data")
+    st.markdown("**Narrow down what you're looking at** - Focus on specific store types, products, or time periods")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
         business_categories = ["All"] + sorted(df["business_category"].unique().tolist())
-        selected_business = st.selectbox("Business Category", business_categories)
-
-    if has_sub_category:
-        with cols[1]:
-            if selected_business == "All":
-                sub_opts = ["All"] + sorted(df["business_sub_category"].unique().tolist())
-            else:
-                subset = df[df["business_category"] == selected_business]
-                sub_opts = ["All"] + sorted(subset["business_sub_category"].unique().tolist())
-            selected_sub = st.selectbox("Business Sub-Category", sub_opts)
-
-    with cols[2] if has_sub_category else cols[1]:
+        selected_business = st.selectbox(
+            "🏪 Store Type", 
+            business_categories,
+            help="Filter to see only specific types of stores (e.g., just Gift Shops)"
+        )
+    
+    with col2:
         product_categories = ["All"] + sorted(df["product_category"].unique().tolist())
-        selected_product = st.selectbox("Product Category", product_categories)
-
-    with cols[3] if has_sub_category else cols[2]:
+        selected_product = st.selectbox(
+            "📦 Product Category", 
+            product_categories,
+            help="Filter to see only specific products (e.g., just Women's accessories)"
+        )
+    
+    with col3:
         if "transaction_date" in df.columns and df["transaction_date"].notna().any():
             min_date = df["transaction_date"].min().date()
             max_date = df["transaction_date"].max().date()
             date_range = st.date_input(
-                "Date Range",
+                "📅 Time Period",
                 value=(min_date, max_date),
                 min_value=min_date,
                 max_value=max_date,
+                help="See sales from a specific time period"
             )
         else:
             date_range = None
-
+    
     # Apply filters
     filtered_df = df.copy()
     if selected_business != "All":
         filtered_df = filtered_df[filtered_df["business_category"] == selected_business]
-    if has_sub_category and selected_sub != "All":
-        filtered_df = filtered_df[filtered_df["business_sub_category"] == selected_sub]
     if selected_product != "All":
         filtered_df = filtered_df[filtered_df["product_category"] == selected_product]
     if date_range and len(date_range) == 2:
@@ -209,54 +225,46 @@ def main():
         ]
     
     # Overview Section
-    st.header("📈 Overview")
+    st.header("📈 Your Sales Overview")
+    st.markdown("**Quick snapshot of your business** - See how you're doing overall")
+    
     stats = analytics.get_summary_statistics(filtered_df)
-
-    n_metrics = 6 if "unique_business_sub_categories" in stats else 5
-    overview_cols = st.columns(n_metrics)
-    with overview_cols[0]:
-        st.metric("Total Revenue", f"${stats['total_revenue']:,.2f}")
-    with overview_cols[1]:
-        st.metric("Total Transactions", f"{stats['total_transactions']:,}")
-    with overview_cols[2]:
-        st.metric("Unique Customers", f"{stats['unique_customers']:,}")
-    with overview_cols[3]:
-        st.metric("Product Categories", f"{stats['unique_product_categories']:,}")
-    with overview_cols[4]:
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("💰 Total Revenue", f"${stats['total_revenue']:,.2f}", help="All sales combined")
+    with col2:
+        st.metric("🛒 Total Orders", f"{stats['total_transactions']:,}", help="Number of purchases")
+    with col3:
+        st.metric("👥 Customers", f"{stats['unique_customers']:,}", help="Unique businesses buying from you")
+    with col4:
+        st.metric("📦 Product Types", f"{stats['unique_product_categories']:,}", help="Different product categories sold")
+    with col5:
         st.metric(
-            "Avg Transaction", f"${stats['average_transaction_value']:,.2f}"
+            "💵 Avg Order Size", f"${stats['average_transaction_value']:,.2f}", help="Average amount per purchase"
         )
-    if "unique_business_sub_categories" in stats:
-        with overview_cols[5]:
-            st.metric("Business Sub-Categories", f"{stats['unique_business_sub_categories']:,}")
     
     # Category Matrix Heatmap
-    st.header("🔥 Category Matrix")
-    st.markdown(
-        "Heatmap showing revenue by Business Category × Product Category combination"
-    )
-
-    matrix_level = "category"
-    if has_sub_category:
-        matrix_level = st.radio(
-            "View by",
-            options=["Business Category", "Business Sub-Category"],
-            index=0,
-            key="matrix_level",
-            horizontal=True,
-        )
-        matrix_level = "sub_category" if "Sub-Category" in matrix_level else "category"
-
+    st.header("🔥 Which Stores Buy Which Products?")
+    st.markdown("""
+    **What this shows:** This heatmap shows you which types of businesses buy which product categories.
+    
+    **How to read it:**
+    - 🔴 **Dark red** = High sales (lots of money)
+    - 🟡 **Yellow** = Medium sales
+    - ⚪ **White** = Low or no sales
+    
+    **Why it matters:** Find your best matches! If "Gift Shops" buy lots of "Women's accessories", 
+    you should target more Gift Shops for those products.
+    """)
+    
     try:
-        if matrix_level == "sub_category":
-            matrix = analytics.calculate_sub_category_matrix(filtered_df)
-            y_label = "Business Sub-Category"
-        else:
-            matrix = analytics.calculate_category_matrix(filtered_df)
-            y_label = "Business Category"
+        matrix = analytics.calculate_category_matrix(filtered_df)
+        
+        # Create heatmap
         fig = px.imshow(
             matrix,
-            labels=dict(x="Product Category", y=y_label, color="Revenue"),
+            labels=dict(x="Product Category", y="Business Category", color="Revenue"),
             x=matrix.columns,
             y=matrix.index,
             color_continuous_scale=config.HEATMAP_COLORS,
@@ -265,41 +273,41 @@ def main():
         )
         fig.update_layout(height=600, title="Revenue Heatmap")
         st.plotly_chart(fig, use_container_width=True)
-
+        
+        # Show matrix table
         with st.expander("View Matrix Table"):
             st.dataframe(matrix, use_container_width=True)
     except Exception as e:
         st.error(f"Error creating heatmap: {str(e)}")
     
     # Top Combinations
-    st.header("🏆 Top Combinations")
-
-    top_level = "category"
-    if has_sub_category:
-        top_level = st.radio(
-            "Level",
-            options=["Business Category", "Business Sub-Category"],
-            index=0,
-            key="top_level",
-            horizontal=True,
-        )
-        top_level = "sub_category" if "Sub-Category" in top_level else "category"
-
+    st.header("🏆 Your Best Seller Combinations")
+    st.markdown("""
+    **What this shows:** The best matches between business types and products.
+    
+    **Use this to:** Focus your sales efforts on combinations that already work well!
+    """)
+    
     col1, col2 = st.columns(2)
+    
     with col1:
         metric_choice = st.selectbox(
-            "Rank by", ["revenue", "count", "avg_value"], key="top_metric"
+            "Sort by", 
+            ["revenue", "count", "avg_value"],
+            format_func=lambda x: {"revenue": "💰 Total Sales", "count": "📊 Number of Orders", "avg_value": "💵 Average Order Size"}[x],
+            key="top_metric",
+            help="Choose how to rank the combinations"
         )
+    
     with col2:
-        n_top = st.slider("Number of top combinations", 5, 50, 10, key="n_top")
-
+        n_top = st.slider("Show top", 5, 50, 10, key="n_top", help="How many top combinations to display")
+    
     try:
         top_combinations = analytics.get_top_combinations(
-            filtered_df, n=n_top, metric=metric_choice, level=top_level
+            filtered_df, n=n_top, metric=metric_choice
         )
-        x_col = "business_sub_category" if "business_sub_category" in top_combinations.columns else "business_category"
-        x_label = "Business Sub-Category" if x_col == "business_sub_category" else "Business Category"
-
+        
+        # Bar chart
         if metric_choice == "revenue":
             y_col = "total_revenue"
             y_label = "Total Revenue ($)"
@@ -309,29 +317,33 @@ def main():
         else:
             y_col = "avg_value"
             y_label = "Average Value ($)"
-
+        
         fig = px.bar(
             top_combinations,
-            x=x_col,
+            x="business_category",
             y=y_col,
             color="product_category",
             title=f"Top {n_top} Combinations by {metric_choice.title()}",
-            labels={x_col: x_label, y_col: y_label},
+            labels={"business_category": "Business Category", y_col: y_label},
             barmode="group",
         )
         fig.update_layout(height=500)
         st.plotly_chart(fig, use_container_width=True)
-
-        with st.expander("View Top Combinations Table"):
-            st.dataframe(top_combinations, use_container_width=True)
+        
+        # Table
+        st.dataframe(top_combinations, use_container_width=True)
     except Exception as e:
         st.error(f"Error calculating top combinations: {str(e)}")
     
     # Opportunity Analysis
-    st.header("💡 Growth Opportunities")
-    st.markdown(
-        "Business categories that buy few product categories represent expansion opportunities"
-    )
+    st.header("💡 Where to Grow Next")
+    st.markdown("""
+    **What this shows:** Business types that buy fewer products from you = **big opportunities!**
+    
+    **Example:** If "Bookstores" only buy 2 product types but you sell 5, you can sell them 3 more!
+    
+    **Use this to:** Target businesses that could buy more from you.
+    """)
     
     try:
         opportunities = analytics.identify_opportunities(filtered_df)
@@ -359,14 +371,19 @@ def main():
     
     # Trend Analysis
     if "transaction_date" in filtered_df.columns and filtered_df["transaction_date"].notna().any():
-        st.header("📅 Trends Over Time")
+        st.header("📅 Sales Trends Over Time")
+        st.markdown("""
+        **What this shows:** How your sales change over time by business type and product.
         
-        period_labels = {"D": "Day", "W": "Week", "M": "Month", "Q": "Quarter", "Y": "Year"}
+        **Use this to:** See seasonal patterns and plan for busy/slow periods.
+        """)
+        
         period = st.selectbox(
-            "Time Period",
-            ["D", "W", "M", "Q", "Y"],
+            "View by", 
+            ["D", "W", "M", "Q", "Y"], 
             index=2,
-            format_func=lambda x: period_labels[x],
+            format_func=lambda x: {"D": "Daily", "W": "Weekly", "M": "Monthly", "Q": "Quarterly", "Y": "Yearly"}[x],
+            help="Choose how to group the time periods"
         )
         
         try:
@@ -404,27 +421,34 @@ def main():
     
     # Location-Based Recommendations
     if "location" in df.columns or ("city" in df.columns and "state" in df.columns):
-        st.header("📍 Location-Based Recommendations")
-        st.markdown(
-            "Find similar businesses in nearby locations that might want to purchase the same products"
-        )
+        st.header("📍 Find Similar Stores Nearby")
+        st.markdown("""
+        **What this does:** Finds stores like your existing customers in the same area.
         
+        **Example:** If "Gift Shop in New York" buys your products, find other Gift Shops in New York!
+        
+        **Why it works:** Stores in the same area often have similar customers and needs.
+        """)
+        
+        st.markdown("**Choose what to search for:**")
         col1, col2, col3 = st.columns(3)
         
         with col1:
             business_cats = sorted(df["business_category"].unique().tolist())
             selected_biz_cat = st.selectbox(
-                "Business Category",
+                "🏪 What type of store?",
                 business_cats,
-                key="loc_biz_cat"
+                key="loc_biz_cat",
+                help="Example: Gift Shop, Bookstore"
             )
         
         with col2:
             product_cats = sorted(df["product_category"].unique().tolist())
             selected_prod_cat = st.selectbox(
-                "Product Category",
+                "📦 What product?",
                 product_cats,
-                key="loc_prod_cat"
+                key="loc_prod_cat",
+                help="Example: Women's accessories"
             )
         
         with col3:
@@ -445,12 +469,14 @@ def main():
                 locations = []
             
             selected_location = st.selectbox(
-                "Location (City, State)",
+                "📍 Which location?",
                 locations,
-                key="loc_select"
+                key="loc_select",
+                help="Pick a city/state to search in"
             )
         
-        if st.button("Find Similar Businesses", key="find_similar"):
+        st.divider()
+        if st.button("🔍 Find Similar Stores", key="find_similar", type="primary"):
             try:
                 recommendations = location_analytics.find_similar_businesses_by_location(
                     df,
@@ -524,34 +550,320 @@ def main():
         except Exception as e:
             st.info("Location insights not available. Make sure your data includes location information.")
     
+    # Specific Product Analysis Section
+    if "product_name" in df.columns and ("location" in df.columns or ("city" in df.columns and "state" in df.columns)):
+        st.header("🛍️ Specific Product Analysis by Area")
+        st.markdown("""
+        **What this does:** See which **specific products** sell best in which areas, then find stores in those areas that should buy them too.
+        
+        **Example:** "Tote Bag" sells great in California → Find other stores in California that don't buy Tote Bags yet!
+        """)
+        
+        tab1, tab2, tab3 = st.tabs(["Product Popularity by Area", "Find Stores for Product", "Area Product Recommendations"])
+        
+        with tab1:
+            st.subheader("📊 Which Products Sell Where?")
+            st.markdown("**Pick a product to see where it's most popular**")
+            
+            # Get unique products
+            products = sorted(df["product_name"].unique().tolist())
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                selected_product = st.selectbox(
+                    "🛍️ Choose a Product",
+                    products,
+                    key="product_popularity",
+                    help="Select a product to see where it sells best"
+                )
+            
+            with col2:
+                area_filter = st.selectbox(
+                    "📍 Filter by Area (Optional)",
+                    [None] + sorted([s for s in df["state"].unique() if s and str(s) != "nan"]) if "state" in df.columns else [None],
+                    key="product_area_filter",
+                    help="Leave blank to see all areas"
+                )
+            
+            if st.button("🔍 Analyze Product Popularity", key="analyze_product_pop", type="primary"):
+                try:
+                    analysis = product_level_analytics.analyze_product_popularity_by_area(
+                        df,
+                        product_name=selected_product,
+                        area=area_filter
+                    )
+                    
+                    if "error" not in analysis:
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("💰 Total Sales", f"${analysis['total_sales']:,.2f}")
+                        with col2:
+                            st.metric("🛒 Total Orders", f"{analysis['total_orders']:,}")
+                        with col3:
+                            st.metric("🏪 Stores Buying", f"{analysis['unique_stores']:,}")
+                        
+                        st.markdown(f"**📍 Top Areas for '{selected_product}':**")
+                        
+                        if analysis["top_areas"]:
+                            top_areas_df = pd.DataFrame(analysis["top_areas"])
+                            st.dataframe(
+                                top_areas_df,
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config={
+                                    "location": "Location",
+                                    "total_revenue": st.column_config.NumberColumn("Total Sales", format="$%.2f"),
+                                    "num_orders": "Orders",
+                                    "avg_order": st.column_config.NumberColumn("Avg Order", format="$%.2f"),
+                                    "num_stores": "Stores"
+                                }
+                            )
+                            
+                            # Chart
+                            fig = px.bar(
+                                top_areas_df.head(10),
+                                x="location",
+                                y="total_revenue",
+                                title=f"Sales of '{selected_product}' by Location",
+                                labels={"location": "Location", "total_revenue": "Total Sales ($)"}
+                            )
+                            fig.update_layout(height=400, xaxis_tickangle=-45)
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("No area data available for this product")
+                    else:
+                        st.warning(analysis["error"])
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        
+        with tab2:
+            st.subheader("🎯 Find Stores That Should Buy This Product")
+            st.markdown("""
+            **What this does:** Finds stores in areas where a product is popular, but they don't buy it yet.
+            
+            **Example:** "Tote Bag" sells well in New York → Find stores in New York that don't buy Tote Bags!
+            """)
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                product_to_sell = st.selectbox(
+                    "🛍️ Product to Sell",
+                    sorted(df["product_name"].unique().tolist()),
+                    key="product_to_sell"
+                )
+            
+            with col2:
+                target_area = st.selectbox(
+                    "📍 Target Area",
+                    [None] + sorted([s for s in df["state"].unique() if s and str(s) != "nan"]) if "state" in df.columns else [None],
+                    key="target_area",
+                    help="Pick an area where this product sells well"
+                )
+            
+            with col3:
+                target_biz_type = st.selectbox(
+                    "🏪 Store Type (Optional)",
+                    [None] + sorted(df["business_category"].unique().tolist()),
+                    key="target_biz_type"
+                )
+            
+            max_stores = st.slider("How many stores to find?", 5, 50, 15, key="max_product_stores")
+            
+            if st.button("🔍 Find Target Stores", key="find_product_stores", type="primary"):
+                try:
+                    with st.spinner("Finding stores that should buy this product..."):
+                        stores = product_level_analytics.find_stores_for_specific_product(
+                            df,
+                            product_name=product_to_sell,
+                            area=target_area,
+                            business_category=target_biz_type
+                        )
+                    
+                    if len(stores) > 0:
+                        st.success(f"✅ Found {len(stores)} stores that should buy '{product_to_sell}'!")
+                        st.markdown(f"""
+                        **Why these stores:** They're in areas where '{product_to_sell}' is popular, 
+                        or they're the same type of store that buys it elsewhere.
+                        """)
+                        
+                        # Show stores in popular areas first
+                        popular_area_stores = stores[stores["area_is_popular"] == True]
+                        if len(popular_area_stores) > 0:
+                            st.markdown("**⭐ Stores in Popular Areas (Best Targets!):**")
+                            st.dataframe(
+                                popular_area_stores.head(max_stores)[["customer_id", "location", "business_category", 
+                                                                     "products_they_buy", "total_revenue"]],
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config={
+                                    "customer_id": "Store Name",
+                                    "location": "Location",
+                                    "business_category": "Store Type",
+                                    "products_they_buy": "What They Buy Now",
+                                    "total_revenue": st.column_config.NumberColumn("Their Sales", format="$%.2f")
+                                }
+                            )
+                        
+                        # Show other stores
+                        other_stores = stores[stores["area_is_popular"] == False]
+                        if len(other_stores) > 0:
+                            st.markdown("**📋 Other Recommended Stores:**")
+                            st.dataframe(
+                                other_stores.head(max_stores)[["customer_id", "location", "business_category",
+                                                               "products_they_buy", "total_revenue"]],
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config={
+                                    "customer_id": "Store Name",
+                                    "location": "Location",
+                                    "business_category": "Store Type",
+                                    "products_they_buy": "What They Buy Now",
+                                    "total_revenue": st.column_config.NumberColumn("Their Sales", format="$%.2f")
+                                }
+                            )
+                        
+                        # Store for export
+                        st.session_state.product_stores = stores.head(max_stores)
+                        
+                        st.info("💡 **Next step:** Export this list from the 'Outreach Export' tab!")
+                    else:
+                        st.warning(f"""
+                        **No stores found** for '{product_to_sell}'.
+                        
+                        **Try:**
+                        - A different product
+                        - Remove area filter
+                        - Check if this product sells anywhere
+                        """)
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+        
+        with tab3:
+            st.subheader("🌍 What Products Should You Sell in This Area?")
+            st.markdown("""
+            **What this does:** Shows you which products are popular in an area, 
+            and which stores in that area should buy them.
+            
+            **Perfect for:** Planning your product mix for a specific market!
+            """)
+            
+            # Get areas
+            if "state" in df.columns:
+                areas = sorted([s for s in df["state"].unique() if s and str(s) != "nan"])
+            elif "location" in df.columns:
+                areas = sorted([loc for loc in df["location"].unique() if loc and str(loc) != "nan" and "," in str(loc)])
+            else:
+                areas = []
+            
+            selected_area = st.selectbox(
+                "📍 Choose an Area",
+                areas,
+                key="area_recommendations"
+            )
+            
+            n_products = st.slider("How many top products?", 3, 10, 5, key="n_top_products")
+            n_stores = st.slider("Stores per product?", 5, 20, 10, key="n_stores_per_product")
+            
+            if st.button("🔍 Get Area Recommendations", key="get_area_recs", type="primary"):
+                try:
+                    with st.spinner(f"Analyzing products in {selected_area}..."):
+                        recommendations = product_level_analytics.get_area_product_recommendations(
+                            df,
+                            area=selected_area,
+                            n_products=n_products,
+                            n_stores_per_product=n_stores
+                        )
+                    
+                    if recommendations["popular_products"]:
+                        st.success(f"✅ Found {len(recommendations['popular_products'])} popular products in {selected_area}!")
+                        
+                        st.markdown(f"**📦 Top Products in {selected_area}:**")
+                        popular_df = pd.DataFrame(recommendations["popular_products"])
+                        st.dataframe(
+                            popular_df[["product_name", "product_category", "total_revenue", "num_stores", "num_orders"]],
+                            use_container_width=True,
+                            hide_index=True,
+                            column_config={
+                                "product_name": "Product",
+                                "product_category": "Category",
+                                "total_revenue": st.column_config.NumberColumn("Total Sales", format="$%.2f"),
+                                "num_stores": "Stores Buying",
+                                "num_orders": "Orders"
+                            }
+                        )
+                        
+                        # Show recommendations for each product
+                        if recommendations["recommendations"]:
+                            st.markdown(f"**🎯 Stores to Target in {selected_area}:**")
+                            
+                            for rec in recommendations["recommendations"]:
+                                with st.expander(f"🛍️ {rec['product_name']} - {len(rec['recommended_stores'])} stores to contact"):
+                                    st.markdown(f"""
+                                    **Why this product:** 
+                                    - {rec['popularity_in_area']['num_stores_buying']} stores in {selected_area} already buy it
+                                    - ${rec['popularity_in_area']['total_revenue']:,.2f} in total sales
+                                    """)
+                                    
+                                    stores_df = pd.DataFrame(rec["recommended_stores"])
+                                    st.dataframe(
+                                        stores_df[["customer_id", "location", "business_category", "products_they_buy"]],
+                                        use_container_width=True,
+                                        hide_index=True,
+                                        column_config={
+                                            "customer_id": "Store Name",
+                                            "location": "Location",
+                                            "business_category": "Store Type",
+                                            "products_they_buy": "What They Buy"
+                                        }
+                                    )
+                    else:
+                        st.warning(f"No product data found for {selected_area}")
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+                    import traceback
+                    st.code(traceback.format_exc())
+    
     # Automated Outreach Section
     if "location" in df.columns or ("city" in df.columns and "state" in df.columns):
-        st.header("📧 Automated Outreach & Regional Targeting")
-        st.markdown(
-            "Find target businesses for automated outreach based on store type, products, and regional preferences"
-        )
+        st.header("📧 Find New Customers to Contact")
+        st.markdown("""
+        **What this does:** Helps you find businesses that should buy your products but don't yet.
+        
+        **How it works:** 
+        1. Pick a type of store (like "Gift Shop")
+        2. Pick a product you want to sell (like "Women's accessories")
+        3. Pick a location (like "California")
+        4. Get a list of stores to contact!
+        
+        **Then:** Export the list and reach out to them with personalized messages.
+        """)
         
         tab1, tab2, tab3, tab4 = st.tabs(["Target Finder", "Regional Analysis", "Brand Product Matcher", "Outreach Export"])
         
         with tab1:
-            st.subheader("Find Target Businesses for Outreach")
+            st.subheader("🎯 Step 1: Choose Your Target")
+            st.markdown("**Tell us what you want to sell and to whom**")
             
             col1, col2, col3 = st.columns(3)
             
             with col1:
                 biz_cats = sorted(df["business_category"].unique().tolist())
                 outreach_biz_cat = st.selectbox(
-                    "Business Category to Target",
+                    "What type of store?",
                     biz_cats,
-                    key="outreach_biz"
+                    key="outreach_biz",
+                    help="Example: Gift Shop, Bookstore, Boutique"
                 )
             
             with col2:
                 prod_cats = sorted(df["product_category"].unique().tolist())
                 outreach_prod_cat = st.selectbox(
-                    "Product Category to Promote",
+                    "What product to sell?",
                     prod_cats,
-                    key="outreach_prod"
+                    key="outreach_prod",
+                    help="Example: Women's accessories, Stationery & writing"
                 )
             
             with col3:
@@ -564,56 +876,93 @@ def main():
                     states = []
                 
                 outreach_state = st.selectbox(
-                    "Target State (Optional)",
+                    "Which state? (Optional)",
                     [None] + states,
-                    key="outreach_state"
+                    key="outreach_state",
+                    help="Leave blank to search everywhere, or pick a specific state"
                 )
             
-            max_targets = st.slider("Maximum Targets", 10, 100, 25, key="max_targets")
+            st.markdown("**How many stores do you want to find?**")
+            max_targets = st.slider("Number of stores", 10, 100, 25, key="max_targets", help="More stores = more work, but more potential sales")
             
-            if st.button("Generate Outreach List", key="generate_outreach"):
+            st.divider()
+            
+            if st.button("🔍 Find Target Stores", key="generate_outreach", type="primary"):
                 try:
-                    targets = outreach_automation.generate_outreach_list(
-                        df,
-                        business_category=outreach_biz_cat,
-                        product_category=outreach_prod_cat,
-                        location_filter=outreach_state,
-                        max_results=max_targets
-                    )
+                    with st.spinner("Searching for stores that match your criteria..."):
+                        targets = outreach_automation.generate_outreach_list(
+                            df,
+                            business_category=outreach_biz_cat,
+                            product_category=outreach_prod_cat,
+                            location_filter=outreach_state,
+                            max_results=max_targets
+                        )
                     
                     if len(targets) > 0:
-                        st.success(f"Found {len(targets)} target businesses for outreach!")
+                        st.success(f"✅ Found {len(targets)} stores to contact!")
+                        st.markdown("""
+                        **What you're seeing:** Stores that:
+                        - Are the type you selected (e.g., Gift Shop)
+                        - Are in the location you picked
+                        - **Don't currently buy** the product you want to sell (opportunity!)
+                        - Buy similar products (so they're likely interested)
+                        """)
                         
+                        # Summary stats
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("📋 Stores Found", len(targets), help="Number of stores to contact")
+                        with col2:
+                            st.metric("💰 Avg Sales", f"${targets['total_revenue'].mean():,.2f}", help="How much these stores typically spend")
+                        with col3:
+                            st.metric("📍 Locations", targets["location"].nunique(), help="Number of different cities/states")
+                        
+                        st.markdown("**📊 Store Details:**")
                         # Display targets
                         st.dataframe(
                             targets[["customer_id", "location", "current_products", 
-                                    "recommended_product", "similar_products", "total_revenue", 
-                                    "opportunity_score"]],
+                                    "recommended_product", "total_revenue"]],
                             use_container_width=True,
-                            hide_index=True
+                            hide_index=True,
+                            column_config={
+                                "customer_id": "Store Name",
+                                "location": "Location",
+                                "current_products": "What They Buy Now",
+                                "recommended_product": "Product to Sell Them",
+                                "total_revenue": st.column_config.NumberColumn("Their Sales", format="$%.2f")
+                            }
                         )
                         
                         # Store in session state for export
                         st.session_state.outreach_targets = targets
                         
-                        # Summary stats
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("Total Targets", len(targets))
-                        with col2:
-                            st.metric("Avg Revenue", f"${targets['total_revenue'].mean():,.2f}")
-                        with col3:
-                            st.metric("Unique Locations", targets["location"].nunique())
+                        st.info("💡 **Next step:** Go to the 'Outreach Export' tab to download this list!")
                     else:
-                        st.info("No target businesses found. Try different criteria.")
+                        st.warning("""
+                        **No stores found** with those exact criteria.
+                        
+                        **Try:**
+                        - Different business type
+                        - Different product category  
+                        - Remove the state filter to search everywhere
+                        """)
                 except Exception as e:
-                    st.error(f"Error generating outreach list: {str(e)}")
+                    st.error(f"❌ Error: {str(e)}")
+                    st.info("Make sure you have business categories loaded. Check the sidebar!")
         
         with tab2:
-            st.subheader("Regional Product Preferences")
-            st.markdown("See which products are popular in different states/regions")
+            st.subheader("🌍 What Sells Where?")
+            st.markdown("""
+            **What this shows:** Which products sell best in different states/regions.
             
-            if st.button("Analyze Regional Preferences", key="analyze_regional"):
+            **Why it matters:** Products that sell well in California might not sell in Texas!
+            Use this to customize your product mix by location.
+            
+            **Example:** If "Women's accessories" sell great in New York but not in Montana,
+            focus your marketing differently in each state.
+            """)
+            
+            if st.button("📊 Analyze Regional Sales", key="analyze_regional", type="primary"):
                 try:
                     regional_data = outreach_automation.analyze_regional_preferences(df)
                     
@@ -664,8 +1013,14 @@ def main():
                     st.error(f"Error analyzing regional preferences: {str(e)}")
         
         with tab3:
-            st.subheader("Brand Product Matcher")
-            st.markdown("Match Faire brand products (like Hilarious Humanitarian) with potential buyers")
+            st.subheader("🎯 Match Your Brand Products to Buyers")
+            st.markdown("""
+            **What this does:** Takes your brand's products (like from Faire) and finds stores that should buy them.
+            
+            **Perfect for:** When you have a new product line or brand and want to find the best customers.
+            
+            **Example:** Upload Hilarious Humanitarian products → Find Gift Shops that buy similar products!
+            """)
             
             # Brand product upload
             st.write("**Upload Brand Products**")
@@ -700,8 +1055,14 @@ def main():
                         st.dataframe(brand_products, use_container_width=True, hide_index=True)
                     
                     # Market fit analysis
-                    st.subheader("Market Fit Analysis")
-                    if st.button("Analyze Market Fit", key="analyze_market_fit"):
+                    st.subheader("📈 How Well Do These Products Fit Your Market?")
+                    st.markdown("""
+                    **What this shows:** Whether your brand products match what stores are already buying.
+                    
+                    **High score = Good fit** → Stores already buy similar products, easy to sell!
+                    **Low score = New market** → Different products, might need more education.
+                    """)
+                    if st.button("🔍 Analyze Market Fit", key="analyze_market_fit", type="primary"):
                         try:
                             market_fit = brand_product_matcher.analyze_brand_market_fit(df, brand_products)
                             
@@ -726,29 +1087,35 @@ def main():
                             st.error(f"Error analyzing market fit: {str(e)}")
                     
                     # Find matches
-                    st.subheader("Find Potential Buyers")
+                    st.subheader("🔍 Find Stores That Should Buy These Products")
+                    st.markdown("**Narrow down your search (optional):**")
                     
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         match_states = sorted([s for s in df["state"].unique() if s and str(s) != "nan"]) if "state" in df.columns else []
                         match_state = st.selectbox(
-                            "Filter by State (Optional)",
+                            "📍 Which state?",
                             [None] + match_states,
-                            key="match_state"
+                            key="match_state",
+                            help="Leave blank to search all states"
                         )
                     
                     with col2:
                         match_biz_cats = sorted(df["business_category"].unique().tolist())
                         match_biz_cat = st.selectbox(
-                            "Filter by Business Category (Optional)",
+                            "🏪 What type of store?",
                             [None] + match_biz_cats,
-                            key="match_biz_cat"
+                            key="match_biz_cat",
+                            help="Leave blank to search all store types"
                         )
                     
-                    max_matches = st.slider("Maximum Matches", 10, 100, 30, key="max_matches")
+                    st.markdown("**How many stores do you want to find?**")
+                    max_matches = st.slider("Number of stores", 10, 100, 30, key="max_matches")
                     
-                    if st.button("Find Potential Buyers", key="find_brand_buyers"):
+                    st.divider()
+                    
+                    if st.button("🔍 Find Matching Stores", key="find_brand_buyers", type="primary"):
                         try:
                             matches = brand_product_matcher.generate_brand_outreach_list(
                                 df,
@@ -759,30 +1126,54 @@ def main():
                             )
                             
                             if len(matches) > 0:
-                                st.success(f"Found {len(matches)} potential buyers for brand products!")
+                                st.success(f"✅ Found {len(matches)} stores that should buy your brand products!")
+                                st.markdown("""
+                                **What you're seeing:** Stores that:
+                                - Buy similar products (so they'll like yours)
+                                - Don't buy your brand yet (opportunity!)
+                                - Match your filters (location, store type)
+                                """)
                                 
+                                # Summary
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.metric("📋 Stores Found", len(matches))
+                                with col2:
+                                    st.metric("📍 Locations", matches["location"].nunique())
+                                with col3:
+                                    st.metric("⭐ Opportunity", f"{matches['opportunity_score'].mean():.1f}", help="Lower = more opportunity")
+                                
+                                st.markdown("**📊 Store Details:**")
                                 # Display matches
                                 st.dataframe(
                                     matches[["customer_id", "location", "business_category", 
                                             "brand_category", "recommended_brand_products",
-                                            "current_products", "opportunity_score"]],
+                                            "current_products"]],
                                     use_container_width=True,
-                                    hide_index=True
+                                    hide_index=True,
+                                    column_config={
+                                        "customer_id": "Store Name",
+                                        "location": "Location",
+                                        "business_category": "Store Type",
+                                        "brand_category": "Product Category",
+                                        "recommended_brand_products": "Products to Sell",
+                                        "current_products": "What They Buy Now"
+                                    }
                                 )
                                 
                                 # Store for export
                                 st.session_state.brand_matches = matches
                                 
-                                # Summary
-                                col1, col2, col3 = st.columns(3)
-                                with col1:
-                                    st.metric("Total Matches", len(matches))
-                                with col2:
-                                    st.metric("Unique Locations", matches["location"].nunique())
-                                with col3:
-                                    st.metric("Avg Opportunity Score", f"{matches['opportunity_score'].mean():.1f}")
+                                st.info("💡 **Next step:** Go to 'Outreach Export' tab to download this list!")
                             else:
-                                st.info("No matches found. Try adjusting filters or check if brand products match your sales data categories.")
+                                st.warning("""
+                                **No matches found.** 
+                                
+                                **Try:**
+                                - Removing filters (search everywhere)
+                                - Checking if product categories match
+                                - Using different brand products
+                                """)
                         except Exception as e:
                             st.error(f"Error finding matches: {str(e)}")
                             import traceback
@@ -794,17 +1185,26 @@ def main():
                 st.info("Upload a brand products CSV or use the Hilarious Humanitarian sample data")
         
         with tab4:
-            st.subheader("Export Outreach Data")
+            st.subheader("📥 Download Your Contact List")
+            st.markdown("""
+            **What this does:** Exports your target store list so you can contact them.
+            
+            **Choose your format:**
+            - **CSV** = Spreadsheet (Excel, Google Sheets)
+            - **JSON** = For apps/automation
+            - **Email Templates** = Ready-to-send personalized emails
+            """)
             
             if "outreach_targets" in st.session_state and len(st.session_state.outreach_targets) > 0:
                 targets = st.session_state.outreach_targets
                 
-                st.info(f"Ready to export {len(targets)} target businesses")
+                st.success(f"✅ Ready to export {len(targets)} stores!")
                 
                 export_format = st.selectbox(
-                    "Export Format",
+                    "📄 Choose Format",
                     ["CSV", "JSON", "Email Templates"],
-                    key="export_format"
+                    key="export_format",
+                    help="CSV works with Excel, Email Templates are ready to send"
                 )
                 
                 col1, col2 = st.columns(2)
@@ -1073,38 +1473,39 @@ def main():
                 st.info("Find brand matches first using the 'Find Matches' tab")
     
     # Export Section
-    st.header("💾 Export Results")
-
+    st.header("💾 Download Your Reports")
+    st.markdown("**Save your analysis** - Download data to use in Excel, share with your team, or import into other tools")
+    
     col1, col2 = st.columns(2)
+    
     with col1:
+        # Export category matrix
         try:
-            if matrix_level == "sub_category":
-                matrix_export = analytics.calculate_sub_category_matrix(filtered_df)
-            else:
-                matrix_export = analytics.calculate_category_matrix(filtered_df)
-            csv_matrix = matrix_export.to_csv()
+            matrix = analytics.calculate_category_matrix(filtered_df)
+            csv_matrix = matrix.to_csv()
             st.download_button(
-                label="Download Category Matrix (CSV)",
+                label="📊 Download Store-Product Matrix",
                 data=csv_matrix,
-                file_name=f"category_matrix_{datetime.now().strftime('%Y%m%d')}.csv",
+                file_name=f"store_product_matrix_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
+                help="Spreadsheet showing which stores buy which products"
             )
-        except Exception:
+        except:
             pass
-
+    
     with col2:
+        # Export top combinations
         try:
-            top_export = analytics.get_top_combinations(
-                filtered_df, n=100, level=top_level
-            )
-            csv_top = top_export.to_csv(index=False)
+            top_combinations = analytics.get_top_combinations(filtered_df, n=100)
+            csv_top = top_combinations.to_csv(index=False)
             st.download_button(
-                label="Download Top Combinations (CSV)",
+                label="🏆 Download Top Seller Combinations",
                 data=csv_top,
                 file_name=f"top_combinations_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
+                help="List of your best store-product matches"
             )
-        except Exception:
+        except:
             pass
 
 

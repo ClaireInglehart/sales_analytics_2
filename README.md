@@ -60,7 +60,7 @@ A web-based application for analyzing sales data to identify which business cate
    - Or check "Use Sample Data" to explore with example data
 
 4. **Classify businesses**:
-   - Upload a business mapping CSV file with columns: `customer_id`, `business_category`, and optionally `business_sub_category`
+   - Upload a business mapping CSV file with columns: `customer_id`, `business_category`
    - Or click "Auto-classify Businesses" to use keyword-based classification
    - The system will automatically classify customers based on keywords in their names
 
@@ -95,18 +95,17 @@ CUST002,PROD002,Software,2024-01-16,3500.00
 If you want to manually specify business categories, upload a CSV with:
 
 - `customer_id`: Customer identifier (must match sales data)
-- `business_category`: Business category (e.g., "Retail", "Technology", "Healthcare")
-- `business_sub_category`: (Optional) Finer segment within the category (e.g., "Hardware Store", "Gift Shop"). If omitted or blank, sub-category is treated as "Unspecified".
+- `business_category`: Business category (e.g., "Retail", "Technology", "Healthcare", or more specific types like "Gift Shop", "Boutique")
 
 Example:
 ```csv
-customer_id,business_category,business_sub_category
-CUST001,Retail,Hardware Store
-CUST002,Technology,Software/SaaS
-CUST003,Retail,Gift Shop
+customer_id,business_category
+CUST001,Retail
+CUST002,Technology
+CUST003,Gift Shop
 ```
 
-## Business Categories and Sub-Categories
+## Business Categories
 
 The system supports the following default business categories:
 - Retail
@@ -123,7 +122,7 @@ The system supports the following default business categories:
 - Professional Services
 - Other
 
-Each category (except Other) has optional **sub-categories** for finer segmentation—e.g. Retail includes Hardware Store, Gift Shop, Bookstore, Home Goods, Apparel, Pet Store, and others. Sub-categories are defined in `config.py` (`BUSINESS_SUB_CATEGORIES`) and can be used in the business mapping CSV. When sub-categories are present, the dashboard shows a sub-category filter and optional views (e.g. heatmap and top combinations by sub-category).
+You can use these or more specific category values (e.g., "Gift Shop", "Boutique", "Bookstore") in your business mapping CSV.
 
 ## Project Structure
 

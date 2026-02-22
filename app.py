@@ -94,7 +94,7 @@ def main():
         mapping_file = st.file_uploader(
             "Upload Business Mapping (CSV)",
             type=["csv"],
-            help="CSV with customer_id, business_category; optional column business_sub_category",
+            help="CSV with customer_id, business_category",
         )
         
         if mapping_file is not None:
@@ -160,28 +160,17 @@ def main():
     
     # Filters
     st.header("🔍 Filters")
-    has_sub_category = "business_sub_category" in df.columns
-    n_filter_cols = 4 if has_sub_category else 3
-    cols = st.columns(n_filter_cols)
+    cols = st.columns(3)
 
     with cols[0]:
         business_categories = ["All"] + sorted(df["business_category"].unique().tolist())
         selected_business = st.selectbox("Business Category", business_categories)
 
-    if has_sub_category:
-        with cols[1]:
-            if selected_business == "All":
-                sub_opts = ["All"] + sorted(df["business_sub_category"].unique().tolist())
-            else:
-                subset = df[df["business_category"] == selected_business]
-                sub_opts = ["All"] + sorted(subset["business_sub_category"].unique().tolist())
-            selected_sub = st.selectbox("Business Sub-Category", sub_opts)
-
-    with cols[2] if has_sub_category else cols[1]:
+    with cols[1]:
         product_categories = ["All"] + sorted(df["product_category"].unique().tolist())
         selected_product = st.selectbox("Product Category", product_categories)
 
-    with cols[3] if has_sub_category else cols[2]:
+    with cols[2]:
         if "transaction_date" in df.columns and df["transaction_date"].notna().any():
             min_date = df["transaction_date"].min().date()
             max_date = df["transaction_date"].max().date()
@@ -198,8 +187,6 @@ def main():
     filtered_df = df.copy()
     if selected_business != "All":
         filtered_df = filtered_df[filtered_df["business_category"] == selected_business]
-    if has_sub_category and selected_sub != "All":
-        filtered_df = filtered_df[filtered_df["business_sub_category"] == selected_sub]
     if selected_product != "All":
         filtered_df = filtered_df[filtered_df["product_category"] == selected_product]
     if date_range and len(date_range) == 2:
@@ -212,8 +199,7 @@ def main():
     st.header("📈 Overview")
     stats = analytics.get_summary_statistics(filtered_df)
 
-    n_metrics = 6 if "unique_business_sub_categories" in stats else 5
-    overview_cols = st.columns(n_metrics)
+    overview_cols = st.columns(5)
     with overview_cols[0]:
         st.metric("Total Revenue", f"${stats['total_revenue']:,.2f}")
     with overview_cols[1]:
@@ -226,9 +212,6 @@ def main():
         st.metric(
             "Avg Transaction", f"${stats['average_transaction_value']:,.2f}"
         )
-    if "unique_business_sub_categories" in stats:
-        with overview_cols[5]:
-            st.metric("Business Sub-Categories", f"{stats['unique_business_sub_categories']:,}")
     
     # Category Matrix Heatmap
     st.header("🔥 Category Matrix")
@@ -236,27 +219,11 @@ def main():
         "Heatmap showing revenue by Business Category × Product Category combination"
     )
 
-    matrix_level = "category"
-    if has_sub_category:
-        matrix_level = st.radio(
-            "View by",
-            options=["Business Category", "Business Sub-Category"],
-            index=0,
-            key="matrix_level",
-            horizontal=True,
-        )
-        matrix_level = "sub_category" if "Sub-Category" in matrix_level else "category"
-
     try:
-        if matrix_level == "sub_category":
-            matrix = analytics.calculate_sub_category_matrix(filtered_df)
-            y_label = "Business Sub-Category"
-        else:
-            matrix = analytics.calculate_category_matrix(filtered_df)
-            y_label = "Business Category"
+        matrix = analytics.calculate_category_matrix(filtered_df)
         fig = px.imshow(
             matrix,
-            labels=dict(x="Product Category", y=y_label, color="Revenue"),
+            labels=dict(x="Product Category", y="Business Category", color="Revenue"),
             x=matrix.columns,
             y=matrix.index,
             color_continuous_scale=config.HEATMAP_COLORS,
@@ -274,17 +241,6 @@ def main():
     # Top Combinations
     st.header("🏆 Top Combinations")
 
-    top_level = "category"
-    if has_sub_category:
-        top_level = st.radio(
-            "Level",
-            options=["Business Category", "Business Sub-Category"],
-            index=0,
-            key="top_level",
-            horizontal=True,
-        )
-        top_level = "sub_category" if "Sub-Category" in top_level else "category"
-
     col1, col2 = st.columns(2)
     with col1:
         metric_choice = st.selectbox(
@@ -295,10 +251,10 @@ def main():
 
     try:
         top_combinations = analytics.get_top_combinations(
-            filtered_df, n=n_top, metric=metric_choice, level=top_level
+            filtered_df, n=n_top, metric=metric_choice
         )
-        x_col = "business_sub_category" if "business_sub_category" in top_combinations.columns else "business_category"
-        x_label = "Business Sub-Category" if x_col == "business_sub_category" else "Business Category"
+        x_col = "business_category"
+        x_label = "Business Category"
 
         if metric_choice == "revenue":
             y_col = "total_revenue"
@@ -1078,10 +1034,7 @@ def main():
     col1, col2 = st.columns(2)
     with col1:
         try:
-            if matrix_level == "sub_category":
-                matrix_export = analytics.calculate_sub_category_matrix(filtered_df)
-            else:
-                matrix_export = analytics.calculate_category_matrix(filtered_df)
+            matrix_export = analytics.calculate_category_matrix(filtered_df)
             csv_matrix = matrix_export.to_csv()
             st.download_button(
                 label="Download Category Matrix (CSV)",
@@ -1095,7 +1048,7 @@ def main():
     with col2:
         try:
             top_export = analytics.get_top_combinations(
-                filtered_df, n=100, level=top_level
+                filtered_df, n=100
             )
             csv_top = top_export.to_csv(index=False)
             st.download_button(

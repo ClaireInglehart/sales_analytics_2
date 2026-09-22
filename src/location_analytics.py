@@ -8,6 +8,28 @@ from typing import Dict, List, Tuple
 from collections import defaultdict
 
 
+def _first_non_empty(customer_info: pd.Series, candidates: List[str], default: str = "") -> str:
+    for col in candidates:
+        if col in customer_info.index and pd.notna(customer_info[col]):
+            value = str(customer_info[col]).strip()
+            if value and value.lower() != "nan":
+                return value
+    return default
+
+
+def _build_full_address(customer_info: pd.Series) -> str:
+    address_1 = _first_non_empty(customer_info, ["address_1", "Address 1", "address1"])
+    address_2 = _first_non_empty(customer_info, ["address_2", "Address 2", "address2"])
+    city = _first_non_empty(customer_info, ["city", "City"])
+    state = _first_non_empty(customer_info, ["state", "State"])
+    zip_code = _first_non_empty(customer_info, ["zip_code", "Zip Code", "zip"])
+    country = _first_non_empty(customer_info, ["country", "Country"])
+
+    street = ", ".join([part for part in [address_1, address_2] if part])
+    locality = ", ".join([part for part in [city, state, zip_code] if part])
+    return ", ".join([part for part in [street, locality, country] if part])
+
+
 def find_similar_businesses_by_location(
     df: pd.DataFrame,
     business_category: str,
@@ -103,6 +125,11 @@ def find_similar_businesses_by_location(
                 "customer_id": customer_id,
                 "location": business_locations.get(customer_id, "Unknown"),
                 "business_category": customer_category,
+                "address_1": _first_non_empty(customer_data.iloc[0], ["address_1", "Address 1", "address1"]),
+                "address_2": _first_non_empty(customer_data.iloc[0], ["address_2", "Address 2", "address2"]),
+                "zip_code": _first_non_empty(customer_data.iloc[0], ["zip_code", "Zip Code", "zip"]),
+                "country": _first_non_empty(customer_data.iloc[0], ["country", "Country"]),
+                "full_address": _build_full_address(customer_data.iloc[0]),
                 "current_product_categories": product_categories_bought,
                 "total_revenue": total_revenue,
                 "opportunity_score": product_categories_bought  # Lower = more opportunity
@@ -124,6 +151,11 @@ def find_similar_businesses_by_location(
                     "customer_id": customer_id,
                     "location": business_locations.get(customer_id, "Unknown"),
                     "business_category": customer_category,
+                    "address_1": _first_non_empty(customer_data.iloc[0], ["address_1", "Address 1", "address1"]),
+                    "address_2": _first_non_empty(customer_data.iloc[0], ["address_2", "Address 2", "address2"]),
+                    "zip_code": _first_non_empty(customer_data.iloc[0], ["zip_code", "Zip Code", "zip"]),
+                    "country": _first_non_empty(customer_data.iloc[0], ["country", "Country"]),
+                    "full_address": _build_full_address(customer_data.iloc[0]),
                     "current_product_categories": product_categories_bought,
                     "total_revenue": total_revenue,
                     "opportunity_score": product_categories_bought
@@ -135,7 +167,21 @@ def find_similar_businesses_by_location(
         rec_df = rec_df.sort_values("opportunity_score").head(n_recommendations)
         return rec_df
     else:
-        return pd.DataFrame(columns=["customer_id", "location", "business_category", "current_product_categories", "total_revenue", "opportunity_score"])
+        return pd.DataFrame(
+            columns=[
+                "customer_id",
+                "location",
+                "business_category",
+                "address_1",
+                "address_2",
+                "zip_code",
+                "country",
+                "full_address",
+                "current_product_categories",
+                "total_revenue",
+                "opportunity_score",
+            ]
+        )
 
 
 def get_location_insights(df: pd.DataFrame) -> Dict:

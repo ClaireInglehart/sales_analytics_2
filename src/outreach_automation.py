@@ -8,6 +8,31 @@ from collections import defaultdict
 import json
 
 
+def _first_non_empty(customer_info: pd.Series, candidates: List[str], default: str = "") -> str:
+    """Return the first non-empty value from candidate columns."""
+    for col in candidates:
+        if col in customer_info.index and pd.notna(customer_info[col]):
+            value = str(customer_info[col]).strip()
+            if value and value.lower() != "nan":
+                return value
+    return default
+
+
+def _build_full_address(customer_info: pd.Series) -> str:
+    """Build a human-readable full address from available columns."""
+    address_1 = _first_non_empty(customer_info, ["address_1", "Address 1", "address1"])
+    address_2 = _first_non_empty(customer_info, ["address_2", "Address 2", "address2"])
+    city = _first_non_empty(customer_info, ["city", "City"])
+    state = _first_non_empty(customer_info, ["state", "State"])
+    zip_code = _first_non_empty(customer_info, ["zip_code", "Zip Code", "zip"])
+    country = _first_non_empty(customer_info, ["country", "Country"])
+
+    street = ", ".join([part for part in [address_1, address_2] if part])
+    locality = ", ".join([part for part in [city, state, zip_code] if part])
+    full_address = ", ".join([part for part in [street, locality, country] if part])
+    return full_address
+
+
 def find_similar_products(
     df: pd.DataFrame,
     product_category: str,
@@ -109,6 +134,11 @@ def find_target_businesses_for_outreach(
                 "customer_id": customer_id,
                 "business_category": business_category,
                 "location": loc,
+                "address_1": _first_non_empty(customer_info, ["address_1", "Address 1", "address1"]),
+                "address_2": _first_non_empty(customer_info, ["address_2", "Address 2", "address2"]),
+                "zip_code": _first_non_empty(customer_info, ["zip_code", "Zip Code", "zip"]),
+                "country": _first_non_empty(customer_info, ["country", "Country"]),
+                "full_address": _build_full_address(customer_info),
                 "current_products": ", ".join(products_bought),
                 "recommended_product": product_category,
                 "similar_products": ", ".join(similar_products),
@@ -123,7 +153,8 @@ def find_target_businesses_for_outreach(
         return targets_df
     else:
         return pd.DataFrame(columns=[
-            "customer_id", "business_category", "location", "current_products",
+            "customer_id", "business_category", "location", "address_1", "address_2",
+            "zip_code", "country", "full_address", "current_products",
             "recommended_product", "similar_products", "total_revenue",
             "product_diversity", "opportunity_score"
         ])

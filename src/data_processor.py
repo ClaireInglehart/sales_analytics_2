@@ -2,10 +2,60 @@
 Data processing module for loading and cleaning sales data
 """
 
+import os
+import tempfile
+
 import pandas as pd
 from datetime import datetime
 from typing import Optional, Dict, List, Union
 import config
+from src.faire_formatter import format_faire_export, is_faire_raw_export
+
+
+def _is_numbers_file(raw_bytes: bytes) -> bool:
+    return len(raw_bytes) >= 4 and raw_bytes[:4] == b"PK\x03\x04"
+
+
+def _numbers_bytes_to_dataframe(raw_bytes: bytes) -> pd.DataFrame:
+    from numbers_parser import Document
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".numbers") as tmp:
+        tmp.write(raw_bytes)
+        tmp_path = tmp.name
+
+    doc = None
+    try:
+        doc = Document(tmp_path)
+        sheet = doc.sheets[0]
+        table = sheet.tables[0]
+        rows = list(table.rows(values_only=True))
+    finally:
+        doc = None
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+    if not rows:
+        return pd.DataFrame()
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+    data = rows[1:]
+    return pd.DataFrame(data, columns=headers)
+
+
+def _read_file_bytes(file_path: Union[str, object]) -> bytes:
+    if isinstance(file_path, str):
+        with open(file_path, "rb") as f:
+            return f.read()
+    if hasattr(file_path, "getvalue"):
+        return file_path.getvalue()
+    if hasattr(file_path, "read"):
+        pos = file_path.tell() if hasattr(file_path, "tell") else None
+        raw = file_path.read()
+        if pos is not None and hasattr(file_path, "seek"):
+            file_path.seek(pos)
+        return raw
+    raise ValueError("Unsupported file input type")
 
 
 def load_sales_data(file_path: Union[str, object]) -> pd.DataFrame:
@@ -18,11 +68,25 @@ def load_sales_data(file_path: Union[str, object]) -> pd.DataFrame:
     Returns:
         DataFrame with sales data
     """
-    try:
-        df = pd.read_csv(file_path)
-        return df
-    except Exception as e:
-        raise ValueError(f"Error loading CSV file: {str(e)}")
+    raw_bytes = _read_file_bytes(file_path)
+    if _is_numbers_file(raw_bytes):
+        return _numbers_bytes_to_dataframe(raw_bytes)
+
+    last_error = None
+    for encoding in ("utf-8", "utf-8-sig", "latin-1", "cp1252"):
+        try:
+            from io import BytesIO
+
+            buffer = BytesIO(raw_bytes)
+            df = pd.read_csv(buffer, encoding=encoding)
+            return df
+        except UnicodeDecodeError as e:
+            last_error = e
+            continue
+        except Exception as e:
+            last_error = e
+            break
+    raise ValueError(f"Error loading CSV file: {str(last_error)}")
 
 
 def normalize_column_names(df: pd.DataFrame) -> pd.DataFrame:
@@ -154,10 +218,13 @@ def process_sales_data(file_path: Union[str, object]) -> pd.DataFrame:
     """
     # Load data
     df = load_sales_data(file_path)
-    
-    # Normalize column names
-    df = normalize_column_names(df)
-    
+
+    # Auto-format raw Faire order-summary exports (one row per order)
+    if is_faire_raw_export(df):
+        df = format_faire_export(df)
+    else:
+        df = normalize_column_names(df)
+
     # Validate columns
     missing = validate_columns(df)
     if missing:
@@ -193,11 +260,11 @@ def merge_business_categories(
     df = df.copy()
 
     def get_category(cid):
-        pair = business_mapping.get(str(cid), ("Unknown", None))
+        pair = business_mapping.get(str(cid), ("Other", None))
         return pair[0]
 
     def get_sub_category(cid):
-        pair = business_mapping.get(str(cid), ("Unknown", None))
+        pair = business_mapping.get(str(cid), ("Other", None))
         return pair[1] if pair[1] is not None else "Unspecified"
 
     df["business_category"] = df["customer_id"].map(get_category)
